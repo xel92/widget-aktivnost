@@ -1,0 +1,344 @@
+{
+  "rewardMinutes": {
+    "type": "number",
+    "label": "Минут с первого сообщения до награды",
+    "value": 60,
+    "group": "Активность",
+    "min": 1,
+    "max": 1440,
+    "step": 1
+  },
+  "minMessages": {
+    "type": "number",
+    "label": "Минимум сообщений для награды",
+    "value": 5,
+    "group": "Активность",
+    "min": 1,
+    "max": 10000,
+    "step": 1
+  },
+  "recentMinutes": {
+    "type": "number",
+    "label": "Последнее сообщение не старше, минут",
+    "value": 10,
+    "group": "Активность",
+    "min": 1,
+    "max": 1440,
+    "step": 1
+  },
+  "checkSeconds": {
+    "type": "number",
+    "label": "Проверка условий каждые, секунд",
+    "value": 15,
+    "group": "Активность",
+    "min": 10,
+    "max": 30,
+    "step": 1
+  },
+  "excludeBots": {
+    "type": "checkbox",
+    "label": "Исключать известных ботов из встроенного списка",
+    "value": true,
+    "group": "Активность"
+  },
+  "excludedUsers": {
+    "type": "text",
+    "label": "Исключения: логины или ID через запятую",
+    "value": "",
+    "group": "Активность"
+  },
+  "allowRepeat": {
+    "type": "checkbox",
+    "label": "Разрешить повтор через новый интервал после награды",
+    "value": false,
+    "group": "Активность"
+  },
+  "maxUsers": {
+    "type": "number",
+    "label": "Предел зрителей; новые не принимаются при заполнении",
+    "value": 2000,
+    "group": "Активность",
+    "min": 10,
+    "max": 10000,
+    "step": 1
+  },
+  "maxQueue": {
+    "type": "number",
+    "label": "Предел очереди; остальные повторно проверяются позже",
+    "value": 50,
+    "group": "Активность",
+    "min": 1,
+    "max": 500,
+    "step": 1
+  },
+  "title": {
+    "type": "text",
+    "label": "Заголовок; доступны шаблоны текста",
+    "value": "ЛЕГЕНДА ЧАТА",
+    "group": "Внешний вид"
+  },
+  "thankText": {
+    "type": "text",
+    "label": "Текст: {displayName}, {minutes}, {messages}",
+    "value": "Спасибо, что провёл с нами целый час! 💜",
+    "group": "Внешний вид"
+  },
+  "primaryColor": {
+    "type": "colorpicker",
+    "label": "Основной цвет",
+    "value": "#a879ff",
+    "group": "Внешний вид"
+  },
+  "secondaryColor": {
+    "type": "colorpicker",
+    "label": "Дополнительный цвет",
+    "value": "#f1cc79",
+    "group": "Внешний вид"
+  },
+  "backgroundColor": {
+    "type": "colorpicker",
+    "label": "Цвет полупрозрачной плашки",
+    "value": "#151123",
+    "group": "Внешний вид"
+  },
+  "textColor": {
+    "type": "colorpicker",
+    "label": "Цвет текста",
+    "value": "#fff7ed",
+    "group": "Внешний вид"
+  },
+  "fontSize": {
+    "type": "number",
+    "label": "Размер основного текста, px",
+    "value": 22,
+    "group": "Внешний вид",
+    "min": 12,
+    "max": 48,
+    "step": 1
+  },
+  "cardWidth": {
+    "type": "number",
+    "label": "Ширина плашки, px",
+    "value": 580,
+    "group": "Внешний вид",
+    "min": 280,
+    "max": 1000,
+    "step": 1
+  },
+  "cornerRadius": {
+    "type": "number",
+    "label": "Скругление углов, px",
+    "value": 24,
+    "group": "Внешний вид",
+    "min": 0,
+    "max": 60,
+    "step": 1
+  },
+  "position": {
+    "type": "dropdown",
+    "label": "Положение уведомления",
+    "value": "bottom-right",
+    "group": "Внешний вид",
+    "options": {
+      "top-left": "Сверху слева",
+      "top-right": "Сверху справа",
+      "bottom-left": "Снизу слева",
+      "bottom-right": "Снизу справа",
+      "center": "По центру"
+    }
+  },
+  "enterSeconds": {
+    "type": "number",
+    "label": "Длительность появления, секунд",
+    "value": 0.65,
+    "group": "Внешний вид",
+    "min": 0.1,
+    "max": 5,
+    "step": 0.05
+  },
+  "displaySeconds": {
+    "type": "number",
+    "label": "Длительность показа без переходов, секунд",
+    "value": 7,
+    "group": "Внешний вид",
+    "min": 1,
+    "max": 60,
+    "step": 0.5
+  },
+  "exitSeconds": {
+    "type": "number",
+    "label": "Длительность исчезновения, секунд",
+    "value": 0.55,
+    "group": "Внешний вид",
+    "min": 0.1,
+    "max": 5,
+    "step": 0.05
+  },
+  "gapSeconds": {
+    "type": "number",
+    "label": "Пауза между благодарностями, секунд",
+    "value": 1,
+    "group": "Внешний вид",
+    "min": 0,
+    "max": 30,
+    "step": 0.5
+  },
+  "particles": {
+    "type": "checkbox",
+    "label": "Включить лёгкие частицы",
+    "value": true,
+    "group": "Внешний вид"
+  },
+  "showMessages": {
+    "type": "checkbox",
+    "label": "Показывать число сообщений",
+    "value": true,
+    "group": "Внешний вид"
+  },
+  "showMinutes": {
+    "type": "checkbox",
+    "label": "Показывать минуты с первого сообщения",
+    "value": true,
+    "group": "Внешний вид"
+  },
+  "soundEnabled": {
+    "type": "checkbox",
+    "label": "Воспроизводить выбранный звук",
+    "value": false,
+    "group": "Звук"
+  },
+  "soundFile": {
+    "type": "sound-input",
+    "label": "Звуковой файл; можно оставить пустым",
+    "value": "",
+    "group": "Звук"
+  },
+  "volume": {
+    "type": "number",
+    "label": "Громкость, %",
+    "value": 50,
+    "group": "Звук",
+    "min": 0,
+    "max": 100,
+    "step": 1
+  },
+  "persistence": {
+    "type": "checkbox",
+    "label": "Сохранять прогресс между перезапусками",
+    "value": true,
+    "group": "Сохранение и сессия"
+  },
+  "saveSeconds": {
+    "type": "number",
+    "label": "Интервал записи; максимум потерь при закрытии, секунд",
+    "value": 15,
+    "group": "Сохранение и сессия",
+    "min": 5,
+    "max": 60,
+    "step": 1
+  },
+  "retentionHours": {
+    "type": "number",
+    "label": "Удалять неактивных зрителей через, часов",
+    "value": 48,
+    "group": "Сохранение и сессия",
+    "min": 1,
+    "max": 720,
+    "step": 1
+  },
+  "resetMode": {
+    "type": "dropdown",
+    "label": "Способ сброса сессии",
+    "value": "idle",
+    "group": "Сохранение и сессия",
+    "options": {
+      "idle": "После общей неактивности чата",
+      "manual": "Только вручную"
+    }
+  },
+  "idleHours": {
+    "type": "number",
+    "label": "Сброс после отсутствия сообщений в чате, часов",
+    "value": 6,
+    "group": "Сохранение и сессия",
+    "min": 1,
+    "max": 168,
+    "step": 1
+  },
+  "storageNamespace": {
+    "type": "text",
+    "label": "Имя хранилища (латиница/цифры); одно на канал",
+    "value": "ChatThanksV1",
+    "group": "Сохранение и сессия"
+  },
+  "instanceRole": {
+    "type": "dropdown",
+    "label": "Роль: только один экземпляр может быть активным",
+    "value": "writer",
+    "group": "Сохранение и сессия",
+    "options": {
+      "writer": "Активный: сообщения, награды, запись",
+      "observer": "Наблюдатель: без наград и записи"
+    }
+  },
+  "resetToken": {
+    "type": "text",
+    "label": "Новый маркер сброса: измените значение и сохраните",
+    "value": "initial",
+    "group": "Сохранение и сессия"
+  },
+  "resetSession": {
+    "type": "button",
+    "label": "Сбросить сессию сейчас (необратимо)",
+    "value": "reset",
+    "group": "Сохранение и сессия"
+  },
+  "clearData": {
+    "type": "button",
+    "label": "Очистить зрителей и сохранённые данные (необратимо)",
+    "value": "clear",
+    "group": "Сохранение и сессия"
+  },
+  "testMode": {
+    "type": "checkbox",
+    "label": "Изолированный тест: реальные сообщения игнорируются",
+    "value": false,
+    "group": "Тестирование"
+  },
+  "testRewardSeconds": {
+    "type": "number",
+    "label": "Порог награды в тесте, секунд",
+    "value": 10,
+    "group": "Тестирование",
+    "min": 1,
+    "max": 600,
+    "step": 1
+  },
+  "testName": {
+    "type": "text",
+    "label": "Имя тестового зрителя",
+    "value": "NightWalker",
+    "group": "Тестирование"
+  },
+  "testMessages": {
+    "type": "number",
+    "label": "Число сообщений в тестовой анимации",
+    "value": 5,
+    "group": "Тестирование",
+    "min": 1,
+    "max": 10000,
+    "step": 1
+  },
+  "testActivity": {
+    "type": "button",
+    "label": "Создать сообщения тестового зрителя (только в тестовом режиме)",
+    "value": "messages",
+    "group": "Тестирование"
+  },
+  "testAlert": {
+    "type": "button",
+    "label": "Показать тестовую анимацию без записи прогресса",
+    "value": "test",
+    "group": "Тестирование"
+  }
+}
