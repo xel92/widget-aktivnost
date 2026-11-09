@@ -49,6 +49,12 @@
     s.exclusions = new Set(s.excludedUsers.split(/[,;\s]+/).map(login).filter(Boolean));
     return s;
   }
+  function normalizeEvent(detail) {
+    if(!detail||typeof detail!=='object')return null;
+    // Принимаем также совместимый вариант с listener внутри события кнопки.
+    if(detail.event&&detail.event.listener==='widget-button')return {...detail,listener:'widget-button'};
+    return detail;
+  }
   function parseMessage(detail) {
     if (!detail || detail.listener !== 'message') return null;
     const d = detail.event && detail.event.data;
@@ -280,6 +286,7 @@
       mins.textContent=`${Math.max(0,Math.floor((now-u.firstSeenAt)/MINUTE))} мин · с первого сообщения`;
       msgs.textContent=`${u.messageCount} сообщ.`; mins.hidden=!s.showMinutes;msgs.hidden=!s.showMessages;
       this.card.querySelector('.thanks-particles').hidden=!s.particles;
+      d.getElementById('chatthanks-diagnostic')?.remove();
       this.card.hidden=false;this.card.className='thanks-card enter';
       if (s.soundEnabled && /^https?:\/\//i.test(s.soundFile)) {
         try { this.audio=new global.Audio(s.soundFile);this.audio.volume=s.volume/100;const p=this.audio.play();if(p)p.catch(()=>{}); } catch (_) { /* Звук не блокирует очередь. */ }
@@ -293,14 +300,23 @@
     }
     dispose() { this.stopped=true;for(const [t,resolve] of this.timers){clearTimeout(t);resolve();}this.timers.clear();this.card.hidden=true;if(this.audio)this.audio.pause(); }
   }
-  const exported={DEFAULTS,settings,Engine,Persistence,Renderer,parseMessage,format};
+  const exported={DEFAULTS,settings,Engine,Persistence,Renderer,parseMessage,format,normalizeEvent};
   if(typeof module!=='undefined' && module.exports)module.exports=exported;
   if(!global.document)return;
   global.ChatThanks=exported;
   // Повторное исполнение скрипта снимает старые обработчики и таймеры.
   if(global.__chatThanks)global.__chatThanks.dispose();
   const app={disposed:false,runtime:null,pending:[],generation:0,loadChain:Promise.resolve()};
-  function status(msg) { console.warn('[ChatThanks]',msg);global.dispatchEvent(new CustomEvent('chatthanks:status',{detail:msg})); }
+  let lastStatus='';
+  let diagnosticTimer;
+  function diagnostic(message){
+    let box=global.document.getElementById('chatthanks-diagnostic');
+    if(!box){box=global.document.createElement('div');box.id='chatthanks-diagnostic';
+      box.style.cssText='position:fixed;inset:12px 12px auto;z-index:2147483647;background:#241b36;color:#fff;padding:16px;border:1px solid #a879ff;border-radius:10px;font:16px/1.5 Arial,sans-serif;white-space:pre-wrap';
+      (global.document.body||global.document.documentElement).appendChild(box);}
+    box.textContent=message;clearTimeout(diagnosticTimer);diagnosticTimer=setTimeout(()=>box.remove(),15000);
+  }
+  function status(msg) { lastStatus=msg;console.warn('[ChatThanks]',msg);global.dispatchEvent(new CustomEvent('chatthanks:status',{detail:msg})); }
   async function boot(raw) {
     const generation=++app.generation;
     if(app.runtime)app.runtime.dispose();
@@ -311,7 +327,8 @@
     const renderer=new Renderer(s,global.document);
     let stopped=false,busy=false,interval,saveTimer,flushing=false,updating=false;
     const demos=[];
-    const active=()=>!stopped&&!app.disposed&&!storage.blocked&&s.instanceRole==='writer';
+    const alive=()=>!stopped&&!app.disposed;
+    const active=()=>alive()&&!storage.blocked&&s.instanceRole==='writer';
     const runtime={engine,storage,renderer,s,ready:false,
       canUpdate(){return runtime.ready&&!busy&&!runtime.resetting&&!updating&&!storage.blocked&&engine.queue.length===0&&demos.length===0;},
       async prepareUpdate(){
@@ -322,7 +339,7 @@
         return {key:storage.key,snapshot:engine.snapshot()};
       },
       resumeAfterUpdate(){updating=false;if(active()){engine.tick();runtime.pump();}},
-      dispose(){stopped=true;clearInterval(interval);clearInterval(saveTimer);storage.dispose();renderer.dispose();},
+      dispose(){stopped=true;runtime.ready=false;clearInterval(interval);clearInterval(saveTimer);storage.dispose();renderer.dispose();},
       async flush(force=false){
         if(!active()||!s.persistence||(!engine.dirty&&!force))return;
         if(flushing){if(force && storage.inflight){await storage.inflight;return runtime.flush(true);}return;}
@@ -331,27 +348,29 @@
         finally { flushing=false; }
       },
       async pump(){
-        if(!active()||busy||updating)return;
+        if(!alive()||busy||updating)return;
         busy=true;
         try {
-          while(active()){
-            const demo=demos.shift(), u=demo || engine.take();if(!u)break;
+          while(alive()&&!updating){
+            const demo=demos.shift(), u=demo || (active()?engine.take():null);if(!u)break;
             // Статус награды фиксируется до отображения: перезапуск не повторяет уже начатое уведомление.
             if(!demo)await runtime.flush(true);
-            if(!active())break;
-            try{await renderer.show(u,now());}catch(e){status('Ошибка анимации: '+e.message);}
-            if(!active())break;
+            if(!alive()||(!demo&&!active()))break;
+            try{await renderer.show(u,now());}catch(e){status('Ошибка анимации: '+e.message);if(demo)diagnostic(lastStatus);}
+            if(!alive())break;
             await renderer.delay(s.gapSeconds*1000);
-            engine.tick();
+            if(active())engine.tick();
           }
         } finally { busy=false; }
       },
       event(detail){
         storage.observe(detail);
-        if(!active()||!runtime.ready||updating)return;
+        if(!alive()||!runtime.ready||updating)return;
         if(detail.listener==='widget-button'){
           const field=detail.event&&detail.event.field;
-          if(field==='testActivity' && s.testMode){
+          if(field==='testActivity' && !active()){diagnostic('Тест условий остановлен: оставьте один активный экземпляр и роль «Активный».');return;}
+          if(field==='testActivity' && !s.testMode){diagnostic('Для тестовых сообщений включите «Изолированный тест», сохраните и обновите виджет.');return;}
+          if(field==='testActivity' && active() && s.testMode){
             for(let i=0;i<s.testMessages;i++)engine.message({userId:'synthetic-test-viewer',username:'synthetic_test_viewer',displayName:s.testName});
             runtime.pump();
           }
@@ -359,11 +378,11 @@
             if(demos.length>=s.maxQueue)return;
             demos.push({displayName:s.testName,firstSeenAt:now()-s.rewardMinutes*MINUTE,messageCount:s.testMessages});runtime.pump();
           }
-          if(field==='resetSession'||field==='clearData'){
+          if((field==='resetSession'||field==='clearData')&&active()){
             // Не допускаем завершения старой асинхронной записи после сброса: boot ждёт её.
             runtime.reset();
           }
-        } else if(detail.listener==='message' && (!s.testMode || global.__CHAT_THANKS_PREVIEW__)){
+        } else if(active() && detail.listener==='message' && (!s.testMode || global.__CHAT_THANKS_PREVIEW__)){
           engine.message(parseMessage(detail));runtime.pump();
         }
       },
@@ -404,13 +423,17 @@
     }).catch(e=>status('Ошибка загрузки: '+e.message));
   };
   const event=e=>{
-    if(!e.detail)return;
-    if(app.runtime)app.runtime.storage.observe(e.detail);
-    if(app.runtime&&app.runtime.ready)app.runtime.event(e.detail);
-    else if(e.detail.listener==='message'&&app.pending.length<5000)app.pending.push(e.detail);
+    const detail=normalizeEvent(e.detail);if(!detail)return;
+    if(app.runtime)app.runtime.storage.observe(detail);
+    if(app.runtime&&app.runtime.ready)app.runtime.event(detail);
+    else {
+      if(detail.listener==='widget-button'&&detail.event&&['testAlert','testActivity'].includes(detail.event.field))
+        diagnostic(lastStatus||'Виджет ещё запускается. Подождите несколько секунд. Если сообщение остаётся, проверьте вкладку HTML.');
+      if(['message','widget-button'].includes(detail.listener)&&app.pending.length<5000)app.pending.push(detail);
+    }
   };
   const hide=()=>{if(app.runtime)app.runtime.flush();};
-  app.dispose=()=>{app.disposed=true;if(app.runtime)app.runtime.dispose();global.removeEventListener('onWidgetLoad',load);global.removeEventListener('onEventReceived',event);global.removeEventListener('pagehide',hide);};
+  app.dispose=()=>{app.disposed=true;clearTimeout(diagnosticTimer);global.document.getElementById('chatthanks-diagnostic')?.remove();if(app.runtime)app.runtime.dispose();global.removeEventListener('onWidgetLoad',load);global.removeEventListener('onEventReceived',event);global.removeEventListener('pagehide',hide);};
   global.addEventListener('onWidgetLoad',load);global.addEventListener('onEventReceived',event);global.addEventListener('pagehide',hide);
   global.__chatThanks=app;
 })(typeof window!=='undefined'?window:globalThis);

@@ -12,8 +12,17 @@
   let stopped=false, checking=false, switching=false, replaying=false;
   let loadDetail=null, source='', candidate='', fallback='';
   let lastApp=w.__chatThanks&&!w.__chatThanks.disposed?w.__chatThanks:null;
-  let interval, retry, controller, buffer=[];
-  const warning=msg=>console.warn('[ChatThanks updater]',msg);
+  let interval, retry, controller, buffer=[], lastError='';
+  let diagnosticTimer;
+  const warning=msg=>{lastError=msg;console.warn('[ChatThanks updater]',msg);if(document.getElementById('chatthanks-loader-diagnostic'))diagnostic();};
+  function diagnostic(){
+    let box=document.getElementById('chatthanks-loader-diagnostic');
+    if(!box){box=document.createElement('div');box.id='chatthanks-loader-diagnostic';
+      box.style.cssText='position:fixed;inset:12px 12px auto;z-index:2147483647;background:#241b36;color:#fff;padding:16px;border:1px solid #a879ff;border-radius:10px;font:16px/1.5 Arial,sans-serif;white-space:pre-wrap';
+      (document.body||document.documentElement).appendChild(box);}
+    box.textContent=lastError?'Скрипт не запустился: '+lastError+'\nДля проверки вставьте обычный JS.js вместо AUTOUPDATE.js.':'Загружается JavaScript из GitHub. Подождите до 15 секунд.';
+    clearTimeout(diagnosticTimer);diagnosticTimer=setTimeout(()=>box.remove(),15000);
+  }
   function compatible(code){return typeof code==='string'&&code.length<500000&&code.startsWith(MARKER);}
   function readCache(){try{const code=w.localStorage.getItem(CACHE);return compatible(code)?code:'';}catch(_){return '';}}
   function cache(code){try{w.localStorage.setItem(CACHE,code);}catch(_){warning('Не удалось сохранить офлайн-копию JavaScript.');}}
@@ -25,10 +34,12 @@
   }
   function onEvent(e){
     if(replaying||!e.detail)return;
+    const listener=e.detail.event?.listener==='widget-button'?'widget-button':e.detail.listener;
     // Подтверждения хранилища всегда проходят в действующий runtime.
-    if(!['message','widget-button'].includes(e.detail.listener))return;
+    if(!['message','widget-button'].includes(listener))return;
     if(switching||!lastApp){
       e.stopImmediatePropagation();
+      if(listener==='widget-button'&&['testAlert','testActivity'].includes(e.detail.event?.field))diagnostic();
       if(buffer.length<5000)buffer.push(e.detail);
       else warning('Буфер обновления заполнен; новые события не принимаются.');
     }
@@ -112,7 +123,7 @@
       candidate='';
     }finally{
       switching=false;
-      if(lastApp)replay();
+      if(lastApp){document.getElementById('chatthanks-loader-diagnostic')?.remove();replay();}
     }
   }
   async function check(){
@@ -129,7 +140,7 @@
   w.__chatThanksUpdater={check,
     get ready(){return !switching&&!!lastApp;},
     get updating(){return switching;},
-    dispose(){stopped=true;clearInterval(interval);clearInterval(retry);if(controller)controller.abort();w.removeEventListener('onWidgetLoad',onLoad,true);w.removeEventListener('onEventReceived',onEvent,true);w.removeEventListener('pagehide',pagehide);}
+    dispose(){stopped=true;clearTimeout(diagnosticTimer);document.getElementById('chatthanks-loader-diagnostic')?.remove();clearInterval(interval);clearInterval(retry);if(controller)controller.abort();w.removeEventListener('onWidgetLoad',onLoad,true);w.removeEventListener('onEventReceived',onEvent,true);w.removeEventListener('pagehide',pagehide);}
   };
   // Захватываем события до обработчиков удалённого скрипта и не теряем onWidgetLoad.
   w.addEventListener('onWidgetLoad',onLoad,true);
