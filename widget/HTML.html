@@ -1,11 +1,44 @@
-<div id="thanks-root" aria-live="polite">
+<div id="thanks-root" data-theme="donghua" aria-live="polite">
   <section id="thanks-card" class="thanks-card" hidden>
+    <svg class="thanks-landscape" viewBox="0 0 680 280" preserveAspectRatio="xMaxYMax slice" fill="none" aria-hidden="true">
+      <circle cx="575" cy="68" r="36" stroke="currentColor" stroke-width=".65"/>
+      <circle cx="575" cy="68" r="29" stroke="currentColor" stroke-width=".35" stroke-dasharray="2 6"/>
+      <path d="m250 280 89-103 28 30 43-87 27 41 48-74 97 134 40-58 58 82v35Z" fill="currentColor" opacity=".12"/>
+      <path d="m226 280 113-103 28 30 43-87 27 41 48-74 97 134 40-58 58 82" stroke="currentColor" stroke-width=".8"/>
+      <path d="m306 280 103-98 39 49 49-81 83 130m-199 0 80-44 22 18 41-36 56 62" stroke="currentColor" stroke-width=".45" opacity=".7"/>
+      <path d="M457 46c8-6 13-4 16 1 3-5 8-7 16-1m39 68c5-4 8-3 10 0 2-3 5-4 10-1" stroke="currentColor" stroke-width=".8"/>
+      <path d="M382 248h177c24 0 24-14 10-14-10 0-10 10-1 10m-232 18h219c34 0 35-18 17-18m-299 29h140" stroke="currentColor" stroke-width=".7"/>
+    </svg>
+    <div class="thanks-cloud thanks-cloud-top" aria-hidden="true">
+      <svg viewBox="0 0 240 44" fill="none"><path d="M1 32h49c22 0 22-22 7-22-12 0-12 15-2 15h68c25 0 25-23 10-23-13 0-13 17-2 17h54c19 0 19-16 8-16-9 0-9 11-2 11h48M37 40h140c20 0 20-12 9-12H98" stroke="currentColor" stroke-width=".8"/></svg>
+    </div>
+    <span class="thanks-corner thanks-corner-tl" aria-hidden="true"></span>
+    <span class="thanks-corner thanks-corner-tr" aria-hidden="true"></span>
+    <span class="thanks-corner thanks-corner-bl" aria-hidden="true"></span>
+    <span class="thanks-corner thanks-corner-br" aria-hidden="true"></span>
     <div class="thanks-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="thanks-icon" aria-hidden="true">
-      <svg viewBox="0 0 64 64" fill="none"><path d="m32 6 8 16 18 3-13 13 3 18-16-8-16 8 3-18L6 25l18-3Z" fill="currentColor"/><path d="m32 17 4 10 11 2-8 8 2 10-9-5-9 5 2-10-8-8 11-2Z" fill="#171125"/></svg>
+      <div class="thanks-seal">
+        <svg viewBox="0 0 120 120" fill="none">
+          <defs>
+            <linearGradient id="thanks-jade-blade" x1="55" y1="24" x2="65" y2="82" gradientUnits="userSpaceOnUse"><stop stop-color="#effff3"/><stop offset=".48" stop-color="#a4e9cc"/><stop offset="1" stop-color="#4e9e91"/></linearGradient>
+          </defs>
+          <circle class="thanks-seal-ring" cx="60" cy="60" r="53" stroke="currentColor" stroke-width=".65" stroke-dasharray="76 9 3 9"/>
+          <circle cx="60" cy="60" r="45" stroke="currentColor" stroke-width=".5" opacity=".65"/>
+          <path d="m60 1 3 6-3 6-3-6Zm59 59-6 3-6-3 6-3ZM60 119l-3-6 3-6 3 6ZM1 60l6-3 6 3-6 3Z" fill="currentColor"/>
+          <path d="m24 24 5 1-4 4Zm72 0-1 5-4-4Zm0 72-5-1 4-4Zm-72 0 1-5 4 4Z" fill="currentColor" opacity=".8"/>
+          <circle cx="60" cy="60" r="35" stroke="#a4e9cc" stroke-width=".4" opacity=".35"/>
+          <path d="m60 22 6 16-3 35h-6l-3-35Z" fill="url(#thanks-jade-blade)"/>
+          <path d="M60 30v42" stroke="#f3fff6" stroke-width=".8" opacity=".9"/>
+          <path d="m47 72 13 4 13-4m-18 4 5 4 5-4m-5 5v12m-4 0h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M60 103c-13-2-22-9-23-19 11 1 19 7 23 19Zm0 0c13-2 22-9 23-19-11 1-19 7-23 19Zm0 0c-20 1-33-7-36-18 11 1 18 5 22 10m14 8c20 1 33-7 36-18-11 1-18 5-22 10" stroke="currentColor" stroke-width=".8"/>
+          <path d="M30 53h10m-5-5v10m45-5h10m-5-5v10" stroke="#a4e9cc" stroke-width=".65" opacity=".7"/>
+        </svg>
+      </div>
+      <span class="thanks-seal-caption">ПЕЧАТЬ ЧЕСТИ</span>
     </div>
     <div class="thanks-copy">
-      <div class="thanks-eyebrow"><span class="thanks-line"></span><span id="thanks-title"></span></div>
+      <div class="thanks-eyebrow"><span class="thanks-line"></span><span id="thanks-title"></span><span class="thanks-title-star" aria-hidden="true">✦</span></div>
       <h1 id="thanks-name"></h1>
       <p id="thanks-text"></p>
       <div class="thanks-stats"><span id="thanks-minutes"></span><span id="thanks-messages"></span></div>
