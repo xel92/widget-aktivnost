@@ -39,5 +39,7 @@
   "testMode": false,
   "testRewardSeconds": 10,
   "testName": "NightWalker",
-  "testMessages": 5
+  "testMessages": 5,
+  "titleFont": "Segoe UI",
+  "iconDelaySeconds": 0.25
 }

@@ -3,7 +3,7 @@ html, body { margin:0; background:transparent !important; }
    Векторный декор без внешних ресурсов. Двигаются только transform и opacity. */
 #thanks-root {
   --primary:#a879ff; --secondary:#f1cc79; --panel:#151123; --ink:#fff7ed;
-  --jade:#a4e9cc; --font:22px; --width:580px; --radius:24px;
+  --title-font:"Segoe UI",Arial,sans-serif; --icon-delay:.9s; --jade:#a4e9cc; --font:22px; --width:580px; --radius:24px;
   --enter:.65s; --hold:7s; --exit:.55s;
   position:fixed; inset:0; overflow:hidden; pointer-events:none;
   font-family:"Segoe UI",Arial,sans-serif; color:var(--ink);
@@ -49,7 +49,7 @@ html, body { margin:0; background:transparent !important; }
 #thanks-root .thanks-seal-ring { stroke:var(--primary); opacity:.7; }
 #thanks-root .thanks-seal-caption { display:block; font-size:7px; font-weight:600; line-height:1.5; letter-spacing:1.7px; margin:9px -4px 0; opacity:.8; }
 #thanks-root .thanks-copy { position:relative; z-index:2; min-width:0; flex:1; padding:3px 0; }
-#thanks-root .thanks-eyebrow { display:flex; align-items:center; gap:9px; color:var(--secondary); font-size:calc(var(--font) * .46); font-weight:600; line-height:1.5; letter-spacing:2.1px; overflow-wrap:anywhere; }
+#thanks-root .thanks-eyebrow { font-family:var(--title-font); display:flex; align-items:center; gap:9px; color:var(--secondary); font-size:calc(var(--font) * .46); font-weight:600; line-height:1.5; letter-spacing:2.1px; overflow-wrap:anywhere; }
 #thanks-root .thanks-line { position:relative; display:block; width:19px; height:1px; background:var(--secondary); flex-shrink:0; }
 #thanks-root .thanks-line::before { content:""; position:absolute; width:4px; height:4px; left:0; top:-1.5px; border:1px solid var(--secondary); background:var(--panel); transform:rotate(45deg); }
 #thanks-root .thanks-title-star { margin-left:auto; font-size:13px; opacity:.7; }
@@ -71,7 +71,7 @@ html, body { margin:0; background:transparent !important; }
 #thanks-root .thanks-particles i:nth-child(7) { --x:95%; --y:22%; --delay:.19s; }
 #thanks-root .thanks-particles i:nth-child(8) { --x:13%; --y:89%; --delay:.14s; }
 #thanks-root .thanks-card.enter { animation:thanks-enter var(--enter) cubic-bezier(.16,1,.3,1) both; }
-#thanks-root .enter .thanks-seal svg { animation:thanks-seal-reveal var(--enter) ease-out both; }
+#thanks-root .thanks-icon.is-revealing { animation:thanks-icon-reveal .45s cubic-bezier(.16,1,.3,1) var(--icon-delay) both; }
 #thanks-root .enter .thanks-particles i { animation:thanks-spark 1.4s ease-out both; animation-delay:var(--delay); }
 #thanks-root .thanks-card.hold { opacity:1; transform:translateX(0); }
 #thanks-root .hold .thanks-progress { animation:thanks-timer var(--hold) linear both; }
@@ -84,7 +84,7 @@ html, body { margin:0; background:transparent !important; }
 #thanks-root[data-position="center"] .thanks-card { position:relative; inset:auto; }
 @keyframes thanks-enter { from { opacity:0; transform:translateX(110%); } to { opacity:1; transform:translateX(0); } }
 @keyframes thanks-exit { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(60px); } }
-@keyframes thanks-seal-reveal { from { opacity:0; transform:rotate(-12deg) scale(.85); } to { opacity:1; transform:rotate(0) scale(1); } }
+@keyframes thanks-icon-reveal { from { opacity:0; transform:translateY(9px) scale(.94); } to { opacity:1; transform:translateY(0) scale(1); } }
 @keyframes thanks-timer { from { transform:scaleX(1); } to { transform:scaleX(0); } }
 @keyframes thanks-spark { 0% { opacity:0; transform:translate(8px,8px) scale(.5); } 30% { opacity:.8; } 100% { opacity:0; transform:translate(-12px,-22px) scale(0); } }
 @keyframes thanks-mote { 0% { opacity:0; transform:translateY(8px); } 20% { opacity:.6; } 100% { opacity:0; transform:translateY(-30px); } }
@@ -92,7 +92,9 @@ html, body { margin:0; background:transparent !important; }
   #thanks-root .thanks-card.enter { animation-name:thanks-fade-in; }
   #thanks-root .thanks-card.exit { animation-name:thanks-fade-out; }
   #thanks-root .thanks-particles { display:none; }
-  #thanks-root .thanks-seal svg { animation:none!important; }
+  #thanks-root .thanks-icon.is-revealing { animation-name:thanks-icon-fade; }
 }
 @keyframes thanks-fade-in { from { opacity:0; transform:translateX(0); } to { opacity:1; transform:translateX(0); } }
 @keyframes thanks-fade-out { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(0); } }
+
+@keyframes thanks-icon-fade { from { opacity:0; } to { opacity:1; } }
