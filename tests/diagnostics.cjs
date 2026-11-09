@@ -45,7 +45,7 @@ const defaults=JSON.parse(read('widget/DATA.json'));
    await page.goto('http://127.0.0.1:8080/');
    await page.setContent('<!doctype html><html><head></head><body></body></html>');
    await page.evaluate(()=>localStorage.clear());
-   await page.route('https://raw.githubusercontent.com/xel92/widget-aktivnost/main/widget/JS.js*',route=>route.abort('internetdisconnected'));
+   await page.route('https://api.github.com/repos/xel92/widget-aktivnost/git/ref/heads/main*',route=>route.abort('internetdisconnected'));
    await page.addScriptTag({content:loader});
    await page.waitForTimeout(200);await demo(true);
    assert.match(await page.locator('#chatthanks-loader-diagnostic').textContent(),/Нет офлайн-копии|Не удалось получить обновление/);
