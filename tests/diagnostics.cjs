@@ -13,10 +13,10 @@ const defaults=JSON.parse(read('widget/DATA.json'));
  const page=await browser.newPage();
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  async function setup(raw={},markup=html){
-   await page.goto('http://127.0.0.1:8080/');
+   await page.goto(process.env.PREVIEW_URL||'http://127.0.0.1:8080/');
    await page.setContent('<!doctype html><html><head><style>'+css+'</style></head><body>'+markup+'</body></html>');
    await page.addScriptTag({content:js});
-   await page.evaluate(fields=>dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:fields}})),{...defaults,persistence:false,displaySeconds:1,enterSeconds:.1,exitSeconds:.1,gapSeconds:0,...raw});
+   await page.evaluate(fields=>dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:fields}})),{...defaults,avatarEnabled:false,persistence:false,displaySeconds:1,enterSeconds:.1,exitSeconds:.1,gapSeconds:0,...raw});
  }
  async function demo(nested=false){
    await page.evaluate(n=>dispatchEvent(new CustomEvent('onEventReceived',{detail:n?{listener:'event:test',event:{listener:'widget-button',field:'testAlert',value:'test'}}:{listener:'widget-button',event:{field:'testAlert',value:'test'}}})),nested);
@@ -42,7 +42,7 @@ const defaults=JSON.parse(read('widget/DATA.json'));
    assert.match(await page.locator('#chatthanks-diagnostic').textContent(),/Нет HTML виджета/);
    console.log('✓ Отсутствующий HTML даёт видимую причину вместо молчания');
    // Нет GitHub и нет офлайн-копии: запрос теста показывает сообщение загрузчика.
-   await page.goto('http://127.0.0.1:8080/');
+   await page.goto(process.env.PREVIEW_URL||'http://127.0.0.1:8080/');
    await page.setContent('<!doctype html><html><head></head><body></body></html>');
    await page.evaluate(()=>localStorage.clear());
    await page.route('https://api.github.com/repos/xel92/widget-aktivnost/git/ref/heads/main*',route=>route.abort('internetdisconnected'));

@@ -37,7 +37,7 @@ async function mount(){
   const script=doc.createElement('script');script.textContent=files[2];doc.body.append(script);
   frame.addEventListener('chatthanks:status',e=>log(e.detail));
   const ready=new Promise(resolve=>frame.addEventListener('chatthanks:ready',resolve,{once:true}));
-  frame.dispatchEvent(new frame.CustomEvent('onWidgetLoad',{detail:{fieldData:{...defaults,storageNamespace:'PreviewOnly',allowRepeat:$('repeat').checked,displaySeconds:3,gapSeconds:.4}}}));
+  frame.dispatchEvent(new frame.CustomEvent('onWidgetLoad',{detail:{fieldData:{...defaults,avatarEnabled:false,storageNamespace:'PreviewOnly',allowRepeat:$('repeat').checked,displaySeconds:3,gapSeconds:.4}}}));
   await ready;log('Виджет загружен; хранилище preview изолировано');render();
  }catch(e){$('error').textContent=e.message;}finally{starting=false;}
 }

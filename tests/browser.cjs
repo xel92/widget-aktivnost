@@ -56,7 +56,7 @@ const assert=require('node:assert/strict');
   console.log('✓ Обработчики и очистка сохранённого состояния');
   await act(()=>{
     delete frame.__CHAT_THANKS_PREVIEW__;
-    frame.dispatchEvent(new frame.CustomEvent('onWidgetLoad',{detail:{fieldData:{...defaults,testMode:true,testRewardSeconds:1,checkSeconds:10,storageNamespace:'BrowserIsolatedTest',testName:'Synthetic',displaySeconds:1}}}));
+    frame.dispatchEvent(new frame.CustomEvent('onWidgetLoad',{detail:{fieldData:{...defaults,testMode:true,avatarEnabled:false,testRewardSeconds:1,checkSeconds:10,storageNamespace:'BrowserIsolatedTest',testName:'Synthetic',displaySeconds:1}}}));
   });
   await page.waitForFunction(()=>{const r=document.getElementById('widget').contentWindow.__chatThanks.runtime;return r.ready&&r.s.testMode;});
   await act(()=>send('RealViewer',5));

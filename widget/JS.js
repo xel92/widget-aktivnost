@@ -11,7 +11,7 @@
     primaryColor:'#a879ff', secondaryColor:'#f1cc79', backgroundColor:'#151123', textColor:'#fff7ed',
     titleFont:'Segoe UI', titleFontSize:12, nameFontSize:38, messageFontSize:22, iconDelaySeconds:.25, fontSize:22, cardWidth:580, cornerRadius:24, position:'bottom-right',
     enterSeconds:.65, displaySeconds:7, exitSeconds:.55, gapSeconds:1,
-    particles:true, showMessages:true, showMinutes:true, soundEnabled:false, soundFile:'', volume:50,
+    particles:true, avatarEnabled:true, showMessages:true, showMinutes:true, soundEnabled:false, soundFile:'', volume:50,
     persistence:true, saveSeconds:15, retentionHours:48, resetMode:'idle', idleHours:6,
     storageNamespace:'ChatThanksV1', instanceRole:'writer', resetToken:'initial',
     testMode:false, testRewardSeconds:10, testName:'NightWalker', testMessages:5
@@ -277,10 +277,44 @@
     }
     dispose() { this.disposed=true;if(this.pendingAck)this.pendingAck.reject(new Error('Остановлено')); }
   }
+  function avatarURL(value){
+    try{
+      if(typeof value!=='string'||value.length>2048)return null;
+      const url=new URL(value.trim());
+      if(url.protocol!=='https:'||url.hostname!=='static-cdn.jtvnw.net'||url.port||url.username||url.password||!url.pathname.startsWith('/jtv_user_pictures/'))return null;
+      url.hash='';return url.href;
+    }catch(_){return null;}
+  }
+  class AvatarLookup {
+    constructor(fetcher=(...args)=>global.fetch(...args),now=Date.now){this.fetcher=fetcher;this.now=now;this.cache=new Map();this.timeoutMs=2500;}
+    remember(username,url,ttl){
+      this.cache.delete(username);this.cache.set(username,{url,until:this.now()+ttl});
+      if(this.cache.size>100)this.cache.delete(this.cache.keys().next().value);
+    }
+    markFailed(username){this.remember(login(username),null,5*MINUTE);}
+    async get(username,signal){
+      username=login(username);
+      if(!/^[a-z0-9_]{1,25}$/.test(username)||signal?.aborted)return null;
+      const cached=this.cache.get(username);
+      if(cached&&cached.until>this.now())return cached.url;
+      const controller=new AbortController(),abort=()=>controller.abort();
+      signal?.addEventListener('abort',abort,{once:true});
+      const timer=setTimeout(abort,this.timeoutMs);
+      try{
+        const response=await this.fetcher('https://decapi.me/twitch/avatar/'+encodeURIComponent(username),{signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+        if(!response.ok)throw new Error('Avatar lookup failed');
+        const url=avatarURL(await response.text());
+        if(signal?.aborted)return null;
+        this.remember(username,url,url?15*MINUTE:5*MINUTE);return url;
+      }catch(_){if(!signal?.aborted)this.markFailed(username);return null;}
+      finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
+    }
+  }
+
   class Renderer {
     constructor(s,doc) {
       this.s=s;this.doc=doc;this.root=doc.getElementById('thanks-root');this.card=doc.getElementById('thanks-card');
-      this.timers=new Map();this.audio=null;this.stopped=false;
+      this.timers=new Map();this.audio=null;this.stopped=false;this.avatars=new AvatarLookup();this.avatarGeneration=0;this.stopAvatar=null;
       if (!this.root || !this.card) throw new Error('Нет HTML виджета');
       const vars={primary:s.primaryColor,secondary:s.secondaryColor,panel:s.backgroundColor,ink:s.textColor,
         'title-font':TITLE_FONTS[s.titleFont],'title-size':s.titleFontSize+'px','name-size':s.nameFontSize+'px','message-size':s.messageFontSize+'px','icon-delay':(s.enterSeconds+Math.min(s.iconDelaySeconds,Math.max(0,s.displaySeconds-.45)))+'s',
@@ -288,10 +322,40 @@
       for(const [k,v] of Object.entries(vars))this.root.style.setProperty('--'+k,v);
       this.root.dataset.position=s.position;
     }
+    prepareAvatar(u){
+      if(this.stopAvatar)this.stopAvatar();
+      const token=++this.avatarGeneration,icon=this.card.querySelector('.thanks-icon');
+      const frame=this.card.querySelector('.thanks-avatar-shell'),img=this.card.querySelector('.thanks-avatar-image');
+      const placeholder=this.card.querySelector('.thanks-avatar-placeholder'),caption=this.card.querySelector('.thanks-seal-caption');
+      if(!icon||!frame||!img)return;
+      icon.dataset.avatar='seal';frame.hidden=true;img.hidden=true;if(placeholder)placeholder.hidden=false;
+      if(caption)caption.textContent='ПЕЧАТЬ ЧЕСТИ';
+      const username=login(u.username);
+      if(!this.s.avatarEnabled||!/^[a-z0-9_]{1,25}$/.test(username))return;
+      const controller=new AbortController();let timer;
+      const inactive=()=>this.stopped||controller.signal.aborted||token!==this.avatarGeneration;
+      const cleanup=()=>{clearTimeout(timer);controller.abort();img.onload=null;img.onerror=null;img.removeAttribute('src');};
+      this.stopAvatar=cleanup;
+      const fallback=()=>{
+        if(inactive())return;
+        this.avatars.markFailed(username);cleanup();frame.hidden=true;icon.dataset.avatar='fallback';
+        if(caption)caption.textContent='ПЕЧАТЬ ЧЕСТИ';
+      };
+      frame.hidden=false;icon.dataset.avatar='loading';if(caption)caption.textContent='ГЕРОЙ ЧАТА';
+      // Общий бюджет загрузки не задерживает очередь или старт анимации.
+      timer=setTimeout(fallback,3000);
+      this.avatars.get(username,controller.signal).then(url=>{
+        if(inactive())return;if(!url){fallback();return;}
+        img.onload=()=>{if(inactive())return;clearTimeout(timer);img.hidden=false;if(placeholder)placeholder.hidden=true;icon.dataset.avatar='ready';};
+        img.onerror=fallback;img.referrerPolicy='no-referrer';img.decoding='async';img.src=url;
+      }).catch(fallback);
+    }
+
     delay(ms) { return new Promise(resolve=>{ const t=setTimeout(()=>{this.timers.delete(t);resolve();},ms);this.timers.set(t,resolve); }); }
     async show(u,now) {
       if(this.stopped)return;
       const d=this.doc,s=this.s;
+      this.prepareAvatar(u);
       // Все имена и шаблоны выводятся textContent, никогда innerHTML.
       d.getElementById('thanks-title').textContent=format(s.title,u,now);
       d.getElementById('thanks-name').textContent=u.displayName;
@@ -313,12 +377,12 @@
       this.card.className='thanks-card hold';
       await this.delay(s.displaySeconds*1000);if(this.stopped)return;
       this.card.className='thanks-card exit';
-      await this.delay(s.exitSeconds*1000);this.card.hidden=true;
+      await this.delay(s.exitSeconds*1000);this.card.hidden=true;if(this.stopAvatar){this.stopAvatar();this.stopAvatar=null;}
       if(this.audio){this.audio.pause();this.audio=null;}
     }
-    dispose() { this.stopped=true;for(const [t,resolve] of this.timers){clearTimeout(t);resolve();}this.timers.clear();this.card.hidden=true;if(this.audio)this.audio.pause(); }
+    dispose() { this.stopped=true;this.avatarGeneration++;if(this.stopAvatar)this.stopAvatar();for(const [t,resolve] of this.timers){clearTimeout(t);resolve();}this.timers.clear();this.card.hidden=true;if(this.audio)this.audio.pause(); }
   }
-  const exported={DEFAULTS,settings,Engine,Persistence,Renderer,parseMessage,format,normalizeEvent};
+  const exported={DEFAULTS,settings,Engine,Persistence,Renderer,parseMessage,format,normalizeEvent,AvatarLookup,avatarURL};
   if(typeof module!=='undefined' && module.exports)module.exports=exported;
   if(!global.document)return;
   global.ChatThanks=exported;
@@ -389,12 +453,12 @@
           if(field==='testActivity' && !active()){diagnostic('Тест условий остановлен: оставьте один активный экземпляр и роль «Активный».');return;}
           if(field==='testActivity' && !s.testMode){diagnostic('Для тестовых сообщений включите «Изолированный тест», сохраните и обновите виджет.');return;}
           if(field==='testActivity' && active() && s.testMode){
-            for(let i=0;i<s.testMessages;i++)engine.message({userId:'synthetic-test-viewer',username:'synthetic_test_viewer',displayName:s.testName});
+            for(let i=0;i<s.testMessages;i++)engine.message({userId:'synthetic-test-viewer',username:login(s.testName),displayName:s.testName});
             runtime.pump();
           }
           if(field==='testAlert') {
             if(demos.length>=s.maxQueue)return;
-            demos.push({displayName:s.testName,firstSeenAt:now()-s.rewardMinutes*MINUTE,messageCount:s.testMessages});runtime.pump();
+            demos.push({username:login(s.testName),displayName:s.testName,firstSeenAt:now()-s.rewardMinutes*MINUTE,messageCount:s.testMessages});runtime.pump();
           }
           if((field==='resetSession'||field==='clearData')&&active()){
             // Не допускаем завершения старой асинхронной записи после сброса: boot ждёт её.

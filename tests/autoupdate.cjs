@@ -50,7 +50,7 @@ const release=n=>({
    await page.evaluate(raw=>{
      window.__raw=raw;dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:raw}}));
      window.send=(name='viewer',count=1)=>{for(let i=0;i<count;i++)dispatchEvent(new CustomEvent('onEventReceived',{detail:{listener:'message',event:{data:{nick:name,userId:name,displayName:name,tags:{}}}}}));};
-   },{...defaults,title:'Мой заголовок',displaySeconds:1,enterSeconds:.1,exitSeconds:.1,gapSeconds:0});
+   },{...defaults,avatarEnabled:false,title:'Мой заголовок',displaySeconds:1,enterSeconds:.1,exitSeconds:.1,gapSeconds:0});
  }
  async function installed(n){
    await page.waitForFunction(n=>window.__chatThanksUpdater?.ready&&window.__chatThanks?.runtime?.ready&&window.__testVersion===n,n);

@@ -44,5 +44,6 @@
   "iconDelaySeconds": 0.25,
   "titleFontSize": 12,
   "nameFontSize": 38,
-  "messageFontSize": 22
+  "messageFontSize": 22,
+  "avatarEnabled": true
 }

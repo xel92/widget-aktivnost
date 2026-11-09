@@ -9,7 +9,8 @@
     "test:browser": "node tests/browser.cjs",
     "test:autoupdate": "node tests/autoupdate.cjs",
     "test:diagnostics": "node tests/diagnostics.cjs",
-    "test:appearance": "node tests/appearance.cjs"
+    "test:appearance": "node tests/appearance.cjs",
+    "test:avatars": "node tests/avatars.cjs"
   },
   "engines": {
     "node": ">=18"
