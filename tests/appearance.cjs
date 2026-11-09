@@ -11,12 +11,15 @@ const root=path.join(__dirname,'..');const read=p=>fs.readFileSync(path.join(roo
   await page.addScriptTag({content:read('widget/JS.js')});
   await page.evaluate(()=>{
    window.user={displayName:'NightWalker',messageCount:6,firstSeenAt:Date.now()-3600000};
-   window.r=new ChatThanks.Renderer(ChatThanks.settings({position:'center',titleFont:'Courier New',displaySeconds:2}),document);
+   window.r=new ChatThanks.Renderer(ChatThanks.settings({position:'center',titleFont:'Courier New',titleFontSize:16,nameFontSize:44,messageFontSize:26,fontSize:35,displaySeconds:2}),document);
    r.show(user,Date.now());window.icon=document.querySelector('.thanks-icon');window.first=icon.getAnimations()[0];first.pause();
   });
   assert.match(await page.locator('#thanks-title').evaluate(e=>getComputedStyle(e).fontFamily),/Courier New/);
   assert.doesNotMatch(await page.locator('#thanks-name').evaluate(e=>getComputedStyle(e).fontFamily),/Courier New/);
-  console.log('✓ Шрифт заголовка меняется независимо от имени зрителя');
+  assert.equal(await page.locator('#thanks-title').evaluate(e=>getComputedStyle(e).fontSize),'16px');
+  assert.equal(await page.locator('#thanks-name').evaluate(e=>getComputedStyle(e).fontSize),'44px');
+  assert.equal(await page.locator('#thanks-text').evaluate(e=>getComputedStyle(e).fontSize),'26px');
+  console.log('✓ Заголовок, имя и благодарность имеют независимые размеры; шрифт заголовка меняется отдельно');
   const timing=await page.evaluate(()=>first.effect.getTiming());assert.equal(timing.delay,900);assert.equal(timing.duration,450);
   await page.evaluate(()=>first.currentTime=899);assert.equal(await page.evaluate(()=>Number(getComputedStyle(icon).opacity)),0);
   await page.evaluate(()=>first.currentTime=1351);assert.equal(await page.evaluate(()=>Number(getComputedStyle(icon).opacity)),1);

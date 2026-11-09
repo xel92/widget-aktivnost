@@ -91,6 +91,33 @@
       "Courier New": "Courier New — моноширинный"
     }
   },
+  "titleFontSize": {
+    "type": "slider",
+    "label": "Размер заголовка «ЛЕГЕНДА ЧАТА», px",
+    "value": 12,
+    "group": "Внешний вид",
+    "min": 8,
+    "max": 48,
+    "step": 1
+  },
+  "nameFontSize": {
+    "type": "slider",
+    "label": "Размер имени зрителя, px",
+    "value": 38,
+    "group": "Внешний вид",
+    "min": 12,
+    "max": 96,
+    "step": 1
+  },
+  "messageFontSize": {
+    "type": "slider",
+    "label": "Размер фразы благодарности, px",
+    "value": 22,
+    "group": "Внешний вид",
+    "min": 10,
+    "max": 64,
+    "step": 1
+  },
   "thankText": {
     "type": "text",
     "label": "Текст: {displayName}, {minutes}, {messages}",
@@ -123,9 +150,9 @@
   },
   "fontSize": {
     "type": "number",
-    "label": "Размер основного текста, px",
+    "label": "Базовый масштаб мелких подписей, px",
     "value": 22,
-    "group": "Внешний вид",
+    "group": "Дополнительно",
     "min": 12,
     "max": 48,
     "step": 1

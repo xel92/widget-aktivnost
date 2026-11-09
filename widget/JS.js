@@ -9,7 +9,7 @@
     excludeBots:true, excludedUsers:'', allowRepeat:false, maxUsers:2000, maxQueue:50,
     title:'ЛЕГЕНДА ЧАТА', thankText:'Спасибо, что провёл с нами целый час! 💜',
     primaryColor:'#a879ff', secondaryColor:'#f1cc79', backgroundColor:'#151123', textColor:'#fff7ed',
-    titleFont:'Segoe UI', iconDelaySeconds:.25, fontSize:22, cardWidth:580, cornerRadius:24, position:'bottom-right',
+    titleFont:'Segoe UI', titleFontSize:12, nameFontSize:38, messageFontSize:22, iconDelaySeconds:.25, fontSize:22, cardWidth:580, cornerRadius:24, position:'bottom-right',
     enterSeconds:.65, displaySeconds:7, exitSeconds:.55, gapSeconds:1,
     particles:true, showMessages:true, showMinutes:true, soundEnabled:false, soundFile:'', volume:50,
     persistence:true, saveSeconds:15, retentionHours:48, resetMode:'idle', idleHours:6,
@@ -18,7 +18,7 @@
   };
   const RANGES = {
     rewardMinutes:[1,1440], minMessages:[1,10000], recentMinutes:[1,1440], checkSeconds:[10,30],
-    maxUsers:[10,10000], maxQueue:[1,500], fontSize:[12,48], cardWidth:[280,1000], cornerRadius:[0,60],
+    maxUsers:[10,10000], maxQueue:[1,500], titleFontSize:[8,48], nameFontSize:[12,96], messageFontSize:[10,64], fontSize:[12,48], cardWidth:[280,1000], cornerRadius:[0,60],
     enterSeconds:[.1,5], displaySeconds:[1,60], exitSeconds:[.1,5], gapSeconds:[0,30],
     iconDelaySeconds:[0,2], volume:[0,100], saveSeconds:[5,60], retentionHours:[1,720], idleHours:[1,168],
     testRewardSeconds:[1,600], testMessages:[1,10000]
@@ -50,6 +50,10 @@
     for (const k of ['primaryColor','secondaryColor','backgroundColor','textColor']) {
       if (!/^#[a-f\d]{3}([a-f\d]{3})?$/i.test(s[k])) s[k]=DEFAULTS[k];
     }
+    // Старые FIELDS сохраняют прежние пропорции до установки новых контролов.
+    if(!Object.prototype.hasOwnProperty.call(raw,'titleFontSize'))s.titleFontSize=s.fontSize*.46;
+    if(!Object.prototype.hasOwnProperty.call(raw,'nameFontSize'))s.nameFontSize=s.fontSize*1.7;
+    if(!Object.prototype.hasOwnProperty.call(raw,'messageFontSize'))s.messageFontSize=s.fontSize;
     if(!Object.prototype.hasOwnProperty.call(TITLE_FONTS,s.titleFont))s.titleFont=DEFAULTS.titleFont;
     if (!['top-left','top-right','bottom-left','bottom-right','center'].includes(s.position)) s.position=DEFAULTS.position;
     if (!['idle','manual'].includes(s.resetMode)) s.resetMode='idle';
@@ -279,7 +283,7 @@
       this.timers=new Map();this.audio=null;this.stopped=false;
       if (!this.root || !this.card) throw new Error('Нет HTML виджета');
       const vars={primary:s.primaryColor,secondary:s.secondaryColor,panel:s.backgroundColor,ink:s.textColor,
-        'title-font':TITLE_FONTS[s.titleFont],'icon-delay':(s.enterSeconds+Math.min(s.iconDelaySeconds,Math.max(0,s.displaySeconds-.45)))+'s',
+        'title-font':TITLE_FONTS[s.titleFont],'title-size':s.titleFontSize+'px','name-size':s.nameFontSize+'px','message-size':s.messageFontSize+'px','icon-delay':(s.enterSeconds+Math.min(s.iconDelaySeconds,Math.max(0,s.displaySeconds-.45)))+'s',
         font:s.fontSize+'px',width:s.cardWidth+'px',radius:s.cornerRadius+'px',enter:s.enterSeconds+'s',hold:s.displaySeconds+'s',exit:s.exitSeconds+'s'};
       for(const [k,v] of Object.entries(vars))this.root.style.setProperty('--'+k,v);
       this.root.dataset.position=s.position;

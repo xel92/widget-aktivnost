@@ -41,5 +41,8 @@
   "testName": "NightWalker",
   "testMessages": 5,
   "titleFont": "Segoe UI",
-  "iconDelaySeconds": 0.25
+  "iconDelaySeconds": 0.25,
+  "titleFontSize": 12,
+  "nameFontSize": 38,
+  "messageFontSize": 22
 }

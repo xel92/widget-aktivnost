@@ -3,7 +3,7 @@ html, body { margin:0; background:transparent !important; }
    Векторный декор без внешних ресурсов. Двигаются только transform и opacity. */
 #thanks-root {
   --primary:#a879ff; --secondary:#f1cc79; --panel:#151123; --ink:#fff7ed;
-  --title-font:"Segoe UI",Arial,sans-serif; --icon-delay:.9s; --jade:#a4e9cc; --font:22px; --width:580px; --radius:24px;
+  --title-font:"Segoe UI",Arial,sans-serif; --title-size:12px; --name-size:38px; --message-size:22px; --icon-delay:.9s; --jade:#a4e9cc; --font:22px; --width:580px; --radius:24px;
   --enter:.65s; --hold:7s; --exit:.55s;
   position:fixed; inset:0; overflow:hidden; pointer-events:none;
   font-family:"Segoe UI",Arial,sans-serif; color:var(--ink);
@@ -49,12 +49,12 @@ html, body { margin:0; background:transparent !important; }
 #thanks-root .thanks-seal-ring { stroke:var(--primary); opacity:.7; }
 #thanks-root .thanks-seal-caption { display:block; font-size:7px; font-weight:600; line-height:1.5; letter-spacing:1.7px; margin:9px -4px 0; opacity:.8; }
 #thanks-root .thanks-copy { position:relative; z-index:2; min-width:0; flex:1; padding:3px 0; }
-#thanks-root .thanks-eyebrow { font-family:var(--title-font); display:flex; align-items:center; gap:9px; color:var(--secondary); font-size:calc(var(--font) * .46); font-weight:600; line-height:1.5; letter-spacing:2.1px; overflow-wrap:anywhere; }
+#thanks-root .thanks-eyebrow { font-family:var(--title-font); display:flex; align-items:center; gap:9px; color:var(--secondary); font-size:var(--title-size); font-weight:600; line-height:1.5; letter-spacing:2.1px; overflow-wrap:anywhere; }
 #thanks-root .thanks-line { position:relative; display:block; width:19px; height:1px; background:var(--secondary); flex-shrink:0; }
 #thanks-root .thanks-line::before { content:""; position:absolute; width:4px; height:4px; left:0; top:-1.5px; border:1px solid var(--secondary); background:var(--panel); transform:rotate(45deg); }
 #thanks-root .thanks-title-star { margin-left:auto; font-size:13px; opacity:.7; }
-#thanks-root h1 { margin:11px 0 9px; font-family:Georgia,"Times New Roman",serif; font-size:calc(var(--font) * 1.7); line-height:1.12; font-weight:500; letter-spacing:.2px; overflow-wrap:anywhere; text-shadow:0 1px 16px #f1cc7912; }
-#thanks-root p { margin:0; font-size:var(--font); font-weight:400; line-height:1.45; opacity:.82; overflow-wrap:anywhere; white-space:pre-wrap; text-wrap:balance; }
+#thanks-root h1 { margin:11px 0 9px; font-family:Georgia,"Times New Roman",serif; font-size:var(--name-size); line-height:1.12; font-weight:500; letter-spacing:.2px; overflow-wrap:anywhere; text-shadow:0 1px 16px #f1cc7912; }
+#thanks-root p { margin:0; font-size:var(--message-size); font-weight:400; line-height:1.45; opacity:.82; overflow-wrap:anywhere; white-space:pre-wrap; text-wrap:balance; }
 #thanks-root .thanks-stats { display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; margin-top:17px; color:var(--jade); font-size:calc(var(--font) * .49); line-height:1.5; letter-spacing:.15px; }
 #thanks-root .thanks-stats span { display:inline-flex; gap:6px; align-items:center; }
 #thanks-root .thanks-stats span::before { content:""; width:3px; height:3px; border:1px solid var(--secondary); transform:rotate(45deg); flex:0 0 3px; opacity:.9; }
