@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "preview": "python3 -m http.server 8080 --bind 127.0.0.1",
-    "test:browser": "node tests/browser.cjs"
+    "test:browser": "node tests/browser.cjs",
+    "test:autoupdate": "node tests/autoupdate.cjs"
   },
   "engines": {
     "node": ">=18"

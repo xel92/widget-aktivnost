@@ -1,3 +1,4 @@
+/* CHAT_THANKS_API:1 */
 /* StreamElements Chat Thanks — автономный ES6+, без внешних зависимостей. */
 (function (global) {
   'use strict';
@@ -308,10 +309,19 @@
     let local;try{local=global.localStorage;}catch(_){local=null;}
     const storage=new Persistence(s,global.SE_API,local,status);
     const renderer=new Renderer(s,global.document);
-    let stopped=false,busy=false,interval,saveTimer,flushing=false;
+    let stopped=false,busy=false,interval,saveTimer,flushing=false,updating=false;
     const demos=[];
     const active=()=>!stopped&&!app.disposed&&!storage.blocked&&s.instanceRole==='writer';
     const runtime={engine,storage,renderer,s,ready:false,
+      canUpdate(){return runtime.ready&&!busy&&!runtime.resetting&&!updating&&!storage.blocked&&engine.queue.length===0&&demos.length===0;},
+      async prepareUpdate(){
+        if(!runtime.canUpdate())return null;
+        updating=true;
+        await runtime.flush(true);
+        if(storage.blocked||stopped){updating=false;return null;}
+        return {key:storage.key,snapshot:engine.snapshot()};
+      },
+      resumeAfterUpdate(){updating=false;if(active()){engine.tick();runtime.pump();}},
       dispose(){stopped=true;clearInterval(interval);clearInterval(saveTimer);storage.dispose();renderer.dispose();},
       async flush(force=false){
         if(!active()||!s.persistence||(!engine.dirty&&!force))return;
@@ -321,7 +331,7 @@
         finally { flushing=false; }
       },
       async pump(){
-        if(!active()||busy)return;
+        if(!active()||busy||updating)return;
         busy=true;
         try {
           while(active()){
@@ -338,7 +348,7 @@
       },
       event(detail){
         storage.observe(detail);
-        if(!active()||!runtime.ready)return;
+        if(!active()||!runtime.ready||updating)return;
         if(detail.listener==='widget-button'){
           const field=detail.event&&detail.event.field;
           if(field==='testActivity' && s.testMode){
@@ -368,7 +378,10 @@
       }
     };
     app.runtime=runtime;
-    const data=await storage.load();
+    let data=await storage.load();
+    // Передача в памяти только при горячем обновлении совместимой версии JS.
+    const handover=global.__CHAT_THANKS_HANDOVER__;
+    if(handover){delete global.__CHAT_THANKS_HANDOVER__;if(handover.key===storage.key)data=handover.snapshot;}
     if(stopped||app.disposed||generation!==app.generation)return;
     if(data&&!engine.restore(data)){
       status('Сохранённая сессия истекла, сброшена или повреждена; создана новая.');engine.dirty=true;
@@ -378,7 +391,7 @@
     if(active())await runtime.flush(true);
     if(stopped||app.disposed||generation!==app.generation)return;
     for(const event of app.pending.splice(0))runtime.event(event);
-    interval=setInterval(()=>{if(active()){engine.tick();runtime.pump();}},s.checkSeconds*1000);
+    interval=setInterval(()=>{if(active()&&!updating){engine.tick();runtime.pump();}},s.checkSeconds*1000);
     saveTimer=setInterval(()=>runtime.flush(),s.saveSeconds*1000);
     engine.tick();runtime.pump();
     global.dispatchEvent(new CustomEvent('chatthanks:ready'));
