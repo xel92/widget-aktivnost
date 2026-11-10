@@ -43,7 +43,7 @@ const profileURL='https://static-cdn.jtvnw.net/jtv_user_pictures/fixture-profile
   mode='ok';
   await page.evaluate(()=>{
    window.clock=Date.now();window.__CHAT_THANKS_PREVIEW__={now:()=>window.clock};
-   dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:{...base,persistence:false,avatarEnabled:true,rewardMinutes:1,minMessages:1,displaySeconds:1}}}));
+   dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:{...base,persistence:false,avatarEnabled:true,rewardMinutes:1,jitterMinutes:0,minMessages:1,displaySeconds:1}}}));
   });
   await page.waitForFunction(()=>window.__chatThanks.runtime?.ready);
   await page.evaluate(()=>{

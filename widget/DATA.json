@@ -61,5 +61,6 @@
   "rank3Enabled": true,
   "rank3Minutes": 180,
   "testRank": 1,
-  "rank1Enabled": true
+  "rank1Enabled": true,
+  "jitterMinutes": 5
 }

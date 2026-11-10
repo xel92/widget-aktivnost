@@ -10,6 +10,7 @@ const assert=require('node:assert/strict');
  try{
   await page.goto(url);await page.waitForFunction(()=>document.getElementById('widget').contentWindow.__chatThanks?.runtime?.ready);
   await page.waitForFunction(()=>!starting);
+  await page.evaluate(()=>{defaults.jitterMinutes=0;frame.__chatThanks.runtime.engine.s.jitterMinutes=0;});
   const act=async fn=>page.evaluate(fn);
   await act(()=>send('NightWalker',5));
   assert.equal(await act(()=>frame.__chatThanks.runtime.engine.queue.length),0);

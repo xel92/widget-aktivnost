@@ -8,7 +8,7 @@
     ranksEnabled:true, rank1Enabled:true, showPosition:true, rank2Enabled:true, rank3Enabled:true, rank2Minutes:120, rank3Minutes:180,
     rank1Name:'Адепт', rank2Name:'Мастер', rank3Name:'Небожитель',
     rank1Text:'Твой путь в нашей обители начался.', rank2Text:'Твоё присутствие придаёт чату силу.', rank3Text:'Твоё имя вписано в легенды нашего чата.', testRank:1,
-    rewardMinutes:60, minMessages:5, recentMinutes:10, checkSeconds:15,
+    rewardMinutes:60, jitterMinutes:5, minMessages:5, recentMinutes:10, checkSeconds:15,
     excludeBots:true, excludedUsers:'', allowRepeat:false, maxUsers:2000, maxQueue:50,
     title:'ЛЕГЕНДА ЧАТА', thankText:'Спасибо, что провёл с нами целый час! 💜',
     primaryColor:'#a879ff', secondaryColor:'#f1cc79', backgroundColor:'#151123', textColor:'#fff7ed',
@@ -20,7 +20,7 @@
     previewPinned:false, testMode:false, testRewardSeconds:10, testName:'NightWalker', testMessages:5
   };
   const RANGES = {
-    rank2Minutes:[1,10080], rank3Minutes:[1,10080], testRank:[1,3], rewardMinutes:[1,1440], minMessages:[1,10000], recentMinutes:[1,1440], checkSeconds:[10,30],
+    jitterMinutes:[0,60], rank2Minutes:[1,10080], rank3Minutes:[1,10080], testRank:[1,3], rewardMinutes:[1,1440], minMessages:[1,10000], recentMinutes:[1,1440], checkSeconds:[10,30],
     statsFontSize:[8,36], maxUsers:[10,10000], maxQueue:[1,500], titleFontSize:[8,48], nameFontSize:[12,96], messageFontSize:[10,64], fontSize:[12,48], cardWidth:[280,1000], cornerRadius:[0,60],
     enterSeconds:[.1,5], displaySeconds:[1,60], exitSeconds:[.1,5], gapSeconds:[0,30],
     iconDelaySeconds:[0,2], volume:[0,100], saveSeconds:[5,60], retentionHours:[1,720], idleHours:[1,168],
@@ -100,12 +100,32 @@
       this.users.clear(); this.queue=[]; this.pending.clear(); this.seenMessages.clear(); this.dirty=true;
     }
     excluded(u) { return this.s.exclusions.has(u.username) || this.s.exclusions.has(login(u.userId)) || (this.s.excludeBots && BOTS.has(u.username)); }
+    jitterFactors(u) {
+      if(!Array.isArray(u.jitterFactors)||u.jitterFactors.length!==3||!u.jitterFactors.every(v=>finite(v)&&v>=-1&&v<=1)){
+        // Session ID supplies entropy. Deterministic migration also survives a reload before the next save.
+        const seed=u.sessionId+'|'+this.key(u)+'|'+u.firstSeenAt;
+        u.jitterFactors=[1,2,3].map(rank=>{
+          let h=2166136261;
+          for(const c of seed+'|'+rank){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}
+          h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;
+          return (h>>>0)/4294967295*2-1;
+        });this.dirty=true;
+      }
+      return u.jitterFactors;
+    }
+    thresholds(u) {
+      const base=[this.s.rewardMinutes,this.s.rank2Minutes,this.s.rank3Minutes];
+      if(this.s.testMode)return base.map(v=>v*this.s.testRewardSeconds*1000/this.s.rewardMinutes);
+      const factors=this.jitterFactors(u);
+      // Sorting preserves rank order and the corresponding ± window, even when windows overlap.
+      return base.map((v,i)=>Math.max(0,v+factors[i]*this.s.jitterMinutes)*MINUTE).sort((a,b)=>a-b);
+    }
     rankAt(u,now=this.now()) {
       const elapsed=now-u.firstSeenAt;
-      const unit=this.s.testMode?this.s.testRewardSeconds*1000/this.s.rewardMinutes:MINUTE;
-      if(this.s.rank3Enabled&&elapsed>=this.s.rank3Minutes*unit)return 3;
-      if(this.s.rank2Enabled&&elapsed>=this.s.rank2Minutes*unit)return 2;
-      return this.s.rank1Enabled&&elapsed>=this.s.rewardMinutes*unit?1:0;
+      const thresholds=this.thresholds(u);
+      if(this.s.rank3Enabled&&elapsed>=thresholds[2])return 3;
+      if(this.s.rank2Enabled&&elapsed>=thresholds[1])return 2;
+      return this.s.rank1Enabled&&elapsed>=thresholds[0]?1:0;
     }
     position(u) {
       let place=1;
@@ -113,7 +133,7 @@
       return place;
     }
     checkRewardEligibility(u, now=this.now()) {
-      const wait=this.s.testMode ? this.s.testRewardSeconds*1000 : this.s.rewardMinutes*MINUTE;
+      const wait=u?this.thresholds(u)[0]:Infinity;
       return !!u && u.sessionId===this.sessionId && !this.excluded(u) && !this.pending.has(this.key(u)) &&
         now>=u.firstSeenAt && now-u.firstSeenAt>=wait && now-u.lastMessageAt<=this.s.recentMinutes*MINUTE &&
         now>=u.lastMessageAt && u.messageCount>=this.s.minMessages &&
@@ -157,7 +177,7 @@
         if (this.users.size>=this.s.maxUsers) return;
         u={userId:m.userId||'', username:m.username, displayName:m.displayName||m.username,
           firstSeenAt:now,lastMessageAt:now,messageCount:0,rewardedRank:0,rewarded:false,rewardedAt:null,sessionId:this.sessionId};
-        this.users.set(k,u);
+        this.jitterFactors(u);this.users.set(k,u);
       }
       u.username=m.username || u.username; u.displayName=m.displayName||u.displayName;
       u.lastMessageAt=now; u.messageCount=Math.min(Number.MAX_SAFE_INTEGER,u.messageCount+1);
@@ -204,12 +224,13 @@
           !Number.isSafeInteger(raw.messageCount) || raw.messageCount<1 || typeof raw.rewarded!=='boolean' ||
           (raw.rewarded && (!finite(raw.rewardedAt) || raw.rewardedAt<raw.firstSeenAt || raw.rewardedAt>now+MINUTE))) continue;
         const u={userId:clean(raw.userId),username:login(raw.username),displayName:clean(raw.displayName),
+          jitterFactors:Array.isArray(raw.jitterFactors)?raw.jitterFactors.slice(0,3):null,
           firstSeenAt:raw.firstSeenAt,lastMessageAt:raw.lastMessageAt,messageCount:raw.messageCount,
           rewardedRank:Number.isInteger(raw.rewardedRank)&&raw.rewardedRank>=0&&raw.rewardedRank<=3?raw.rewardedRank:(raw.rewarded?1:0),
           rewarded:raw.rewarded,rewardedAt:raw.rewarded?raw.rewardedAt:null,sessionId:data.sessionId};
         if (!u.userId && !u.username) continue;
         if (!u.rewarded && now-u.lastMessageAt>this.s.retentionHours*3600000) continue;
-        users.set(this.key(u),u);
+        this.jitterFactors(u);users.set(this.key(u),u);
       }
       this.users=users; this.sessionId=data.sessionId; this.startedAt=data.startedAt; this.lastActivityAt=data.lastActivityAt;
       this.queue=[]; this.pending.clear();
