@@ -1,0 +1,533 @@
+{
+  "enabled": {
+    "type": "checkbox",
+    "label": "Включить виджет",
+    "value": true,
+    "group": "Отображение"
+  },
+  "title": {
+    "type": "text",
+    "label": "Заголовок",
+    "value": "ТОП-5 ЧАТЕРОВ",
+    "group": "Отображение"
+  },
+  "subtitle": {
+    "type": "text",
+    "label": "Подзаголовок",
+    "value": "Самые активные за стрим",
+    "group": "Отображение"
+  },
+  "width": {
+    "type": "number",
+    "label": "Ширина свитка, px",
+    "value": 520,
+    "group": "Отображение",
+    "min": 280,
+    "max": 1000,
+    "step": 10
+  },
+  "scale": {
+    "type": "number",
+    "label": "Масштаб, %",
+    "value": 100,
+    "group": "Отображение",
+    "min": 20,
+    "max": 200,
+    "step": 1
+  },
+  "position": {
+    "type": "dropdown",
+    "label": "Положение",
+    "value": "right",
+    "group": "Отображение",
+    "options": {
+      "right": "Справа по центру",
+      "left": "Слева по центру",
+      "center": "По центру",
+      "top-right": "Справа сверху",
+      "top-left": "Слева сверху",
+      "bottom-right": "Справа снизу",
+      "bottom-left": "Слева снизу"
+    }
+  },
+  "offsetX": {
+    "type": "number",
+    "label": "Отступ по горизонтали, px",
+    "value": 28,
+    "group": "Отображение",
+    "min": 0,
+    "max": 1000,
+    "step": 1
+  },
+  "offsetY": {
+    "type": "number",
+    "label": "Отступ по вертикали, px",
+    "value": 28,
+    "group": "Отображение",
+    "min": 0,
+    "max": 1000,
+    "step": 1
+  },
+  "fontSize": {
+    "type": "number",
+    "label": "Основной размер текста, px",
+    "value": 18,
+    "group": "Отображение",
+    "min": 12,
+    "max": 32,
+    "step": 1
+  },
+  "autoFit": {
+    "type": "checkbox",
+    "label": "Вписывать свиток целиком в источник",
+    "value": true,
+    "group": "Отображение"
+  },
+  "paper": {
+    "type": "colorpicker",
+    "label": "Фон свитка",
+    "value": "#FFF9ED",
+    "group": "Цвета"
+  },
+  "paperSecondary": {
+    "type": "colorpicker",
+    "label": "Дополнительный пергамент",
+    "value": "#F8EEDC",
+    "group": "Цвета"
+  },
+  "gold": {
+    "type": "colorpicker",
+    "label": "Золото",
+    "value": "#C49A47",
+    "group": "Цвета"
+  },
+  "ink": {
+    "type": "colorpicker",
+    "label": "Основной текст",
+    "value": "#34251D",
+    "group": "Цвета"
+  },
+  "muted": {
+    "type": "colorpicker",
+    "label": "Второстепенный текст",
+    "value": "#86745F",
+    "group": "Цвета"
+  },
+  "leaderColor": {
+    "type": "colorpicker",
+    "label": "Подсветка первого места",
+    "value": "#F2E2B7",
+    "group": "Цвета"
+  },
+  "upColor": {
+    "type": "colorpicker",
+    "label": "Повышение позиции",
+    "value": "#36805A",
+    "group": "Цвета"
+  },
+  "downColor": {
+    "type": "colorpicker",
+    "label": "Понижение позиции",
+    "value": "#B54A43",
+    "group": "Цвета"
+  },
+  "count": {
+    "type": "number",
+    "label": "Количество мест (1–5)",
+    "value": 5,
+    "group": "Рейтинг",
+    "min": 1,
+    "max": 5,
+    "step": 1
+  },
+  "excludeBots": {
+    "type": "checkbox",
+    "label": "Исключить известных ботов",
+    "value": true,
+    "group": "Рейтинг"
+  },
+  "excludedUsers": {
+    "type": "text",
+    "label": "Исключённые логины через запятую",
+    "value": "",
+    "group": "Рейтинг"
+  },
+  "countCommands": {
+    "type": "checkbox",
+    "label": "Учитывать команды с !",
+    "value": false,
+    "group": "Рейтинг"
+  },
+  "spamProtection": {
+    "type": "checkbox",
+    "label": "Включить мягкую защиту от спама",
+    "value": true,
+    "group": "Рейтинг"
+  },
+  "minGapSeconds": {
+    "type": "number",
+    "label": "Минимальная пауза между сообщениями, сек.",
+    "value": 0.5,
+    "group": "Рейтинг",
+    "min": 0,
+    "max": 10,
+    "step": 0.1
+  },
+  "duplicateSeconds": {
+    "type": "number",
+    "label": "Не считать одинаковый текст повторно в течение, сек.",
+    "value": 8,
+    "group": "Рейтинг",
+    "min": 0,
+    "max": 120,
+    "step": 1
+  },
+  "avatars": {
+    "type": "checkbox",
+    "label": "Показывать аватары",
+    "value": true,
+    "group": "Рейтинг"
+  },
+  "avatarProvider": {
+    "type": "dropdown",
+    "label": "Получение аватаров",
+    "value": "decapi",
+    "group": "Рейтинг",
+    "options": {
+      "decapi": "DecAPI (публичный сторонний сервис)",
+      "fallback": "Только встроенная заглушка"
+    }
+  },
+  "titles": {
+    "type": "checkbox",
+    "label": "Показывать титулы",
+    "value": true,
+    "group": "Рейтинг"
+  },
+  "movement": {
+    "type": "checkbox",
+    "label": "Показывать изменение позиции",
+    "value": true,
+    "group": "Рейтинг"
+  },
+  "progress": {
+    "type": "checkbox",
+    "label": "Показывать прогресс до следующего места",
+    "value": true,
+    "group": "Рейтинг"
+  },
+  "title1": {
+    "type": "text",
+    "label": "Титул для места 1",
+    "value": "Голос дракона",
+    "group": "Рейтинг"
+  },
+  "title2": {
+    "type": "text",
+    "label": "Титул для места 2",
+    "value": "Мастер беседы",
+    "group": "Рейтинг"
+  },
+  "title3": {
+    "type": "text",
+    "label": "Титул для места 3",
+    "value": "Хранитель чата",
+    "group": "Рейтинг"
+  },
+  "title4": {
+    "type": "text",
+    "label": "Титул для места 4",
+    "value": "Ученик свитка",
+    "group": "Рейтинг"
+  },
+  "title5": {
+    "type": "text",
+    "label": "Титул для места 5",
+    "value": "Пробуждённый слушатель",
+    "group": "Рейтинг"
+  },
+  "firstEnabled": {
+    "type": "checkbox",
+    "label": "Показывать First Message",
+    "value": true,
+    "group": "First Message"
+  },
+  "firstHeading": {
+    "type": "text",
+    "label": "Заголовок блока First Message",
+    "value": "ПОСЛЕДНИЙ FIRST MESSAGE",
+    "group": "First Message"
+  },
+  "firstFontSize": {
+    "type": "number",
+    "label": "Размер First Message, px",
+    "value": 17,
+    "group": "First Message",
+    "min": 12,
+    "max": 32,
+    "step": 1
+  },
+  "firstAuthor": {
+    "type": "checkbox",
+    "label": "Показывать автора",
+    "value": true,
+    "group": "First Message"
+  },
+  "firstAnimate": {
+    "type": "checkbox",
+    "label": "Анимация обновления First Message",
+    "value": true,
+    "group": "First Message"
+  },
+  "saveFirst": {
+    "type": "checkbox",
+    "label": "Сохранять последнее First Message",
+    "value": true,
+    "group": "First Message"
+  },
+  "firstDiagnostics": {
+    "type": "checkbox",
+    "label": "Диагностика first-msg на экране",
+    "value": false,
+    "group": "First Message"
+  },
+  "popupSeconds": {
+    "type": "number",
+    "label": "Интервал появления, сек. (300 = 5 минут)",
+    "value": 300,
+    "group": "Анимация",
+    "min": 5,
+    "max": 7200,
+    "step": 1
+  },
+  "displaySeconds": {
+    "type": "number",
+    "label": "Время полного показа, сек.",
+    "value": 15,
+    "group": "Анимация",
+    "min": 1,
+    "max": 300,
+    "step": 1
+  },
+  "enterSeconds": {
+    "type": "number",
+    "label": "Появление, сек.",
+    "value": 0.8,
+    "group": "Анимация",
+    "min": 0,
+    "max": 5,
+    "step": 0.1
+  },
+  "exitSeconds": {
+    "type": "number",
+    "label": "Исчезновение, сек.",
+    "value": 0.8,
+    "group": "Анимация",
+    "min": 0,
+    "max": 5,
+    "step": 0.1
+  },
+  "direction": {
+    "type": "dropdown",
+    "label": "Направление появления",
+    "value": "right",
+    "group": "Анимация",
+    "options": {
+      "right": "Справа",
+      "left": "Слева",
+      "up": "Сверху",
+      "down": "Снизу"
+    }
+  },
+  "animations": {
+    "type": "checkbox",
+    "label": "Включить анимации",
+    "value": true,
+    "group": "Анимация"
+  },
+  "listAnimation": {
+    "type": "checkbox",
+    "label": "Появление строк по очереди",
+    "value": true,
+    "group": "Анимация"
+  },
+  "rankAnimation": {
+    "type": "checkbox",
+    "label": "Анимация смены мест",
+    "value": true,
+    "group": "Анимация"
+  },
+  "newAnimation": {
+    "type": "checkbox",
+    "label": "Анимация нового участника",
+    "value": true,
+    "group": "Анимация"
+  },
+  "refreshSeconds": {
+    "type": "number",
+    "label": "Обновлять видимый рейтинг каждые, сек.",
+    "value": 15,
+    "group": "Анимация",
+    "min": 1,
+    "max": 120,
+    "step": 1
+  },
+  "persistence": {
+    "type": "checkbox",
+    "label": "Сохранять прогресс",
+    "value": true,
+    "group": "Данные"
+  },
+  "saveSeconds": {
+    "type": "number",
+    "label": "Интервал сохранения, сек.",
+    "value": 15,
+    "group": "Данные",
+    "min": 5,
+    "max": 300,
+    "step": 1
+  },
+  "storageNamespace": {
+    "type": "text",
+    "label": "Ключ данных (не менять во время стрима)",
+    "value": "ChatScrollTop5",
+    "group": "Данные"
+  },
+  "instanceRole": {
+    "type": "dropdown",
+    "label": "Роль этого экземпляра",
+    "value": "writer",
+    "group": "Данные",
+    "options": {
+      "writer": "Активный — один на оверлей",
+      "observer": "Наблюдатель — читает сохранённое"
+    }
+  },
+  "resetMode": {
+    "type": "dropdown",
+    "label": "Режим сброса сессии",
+    "value": "manual",
+    "group": "Данные",
+    "options": {
+      "manual": "Ручной сброс (рекомендуется)",
+      "idle": "После общей неактивности"
+    }
+  },
+  "idleHours": {
+    "type": "number",
+    "label": "Сброс после общей неактивности, часов",
+    "value": 6,
+    "group": "Данные",
+    "min": 1,
+    "max": 168,
+    "step": 1
+  },
+  "retentionHours": {
+    "type": "number",
+    "label": "Срок хранения, часов",
+    "value": 48,
+    "group": "Данные",
+    "min": 1,
+    "max": 720,
+    "step": 1
+  },
+  "resetToken": {
+    "type": "text",
+    "label": "Метка новой сессии (изменение сбрасывает прогресс)",
+    "value": "initial",
+    "group": "Данные"
+  },
+  "debug": {
+    "type": "checkbox",
+    "label": "Диагностика запуска",
+    "value": false,
+    "group": "Данные"
+  },
+  "maxUsers": {
+    "type": "number",
+    "label": "Максимум участников в памяти",
+    "value": 3000,
+    "group": "Данные",
+    "min": 10,
+    "max": 10000,
+    "step": 1
+  },
+  "testMode": {
+    "type": "checkbox",
+    "label": "Изолированный тест: реальные сообщения игнорируются",
+    "value": false,
+    "group": "Тестирование"
+  },
+  "pinPreview": {
+    "type": "checkbox",
+    "label": "Держать свиток видимым для настройки",
+    "value": false,
+    "group": "Тестирование"
+  },
+  "testRanking": {
+    "type": "button",
+    "label": "Тестовый топ-5",
+    "value": "testRanking",
+    "group": "Тестирование"
+  },
+  "testFirst": {
+    "type": "button",
+    "label": "Тест: короткое First Message",
+    "value": "testFirst",
+    "group": "Тестирование"
+  },
+  "testLong": {
+    "type": "button",
+    "label": "Тест: длинное сообщение",
+    "value": "testLong",
+    "group": "Тестирование"
+  },
+  "testEmoji": {
+    "type": "button",
+    "label": "Тест: эмодзи",
+    "value": "testEmoji",
+    "group": "Тестирование"
+  },
+  "testLink": {
+    "type": "button",
+    "label": "Тест: длинная ссылка",
+    "value": "testLink",
+    "group": "Тестирование"
+  },
+  "showScroll": {
+    "type": "button",
+    "label": "Показать свиток сейчас",
+    "value": "showScroll",
+    "group": "Тестирование"
+  },
+  "pinScroll": {
+    "type": "button",
+    "label": "Закрепить свиток",
+    "value": "pinScroll",
+    "group": "Тестирование"
+  },
+  "hideScroll": {
+    "type": "button",
+    "label": "Скрыть свиток",
+    "value": "hideScroll",
+    "group": "Тестирование"
+  },
+  "liveData": {
+    "type": "button",
+    "label": "Вернуться к реальным данным",
+    "value": "liveData",
+    "group": "Тестирование"
+  },
+  "diagnostics": {
+    "type": "button",
+    "label": "Показать диагностику",
+    "value": "diagnostics",
+    "group": "Тестирование"
+  },
+  "resetSession": {
+    "type": "button",
+    "label": "Сбросить сессию (дважды за 8 секунд)",
+    "value": "resetSession",
+    "group": "Данные"
+  }
+}
