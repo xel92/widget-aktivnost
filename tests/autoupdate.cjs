@@ -18,18 +18,21 @@ const release=n=>({
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined,headless:true,args:['--no-sandbox']});
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const releases=new Map();for(let n=1;n<=10;n++)releases.set(sha(n),release(n));
+ let apiBlocked=false,fallbackEnabled=false;
  let head=sha(1),offline=false,failedAsset='',hold=false,releaseRequest=null,changeHeadDuringAssets=null;
  const requested=[];
  const ref='https://api.github.com/repos/xel92/widget-aktivnost/git/ref/heads/main';
  const raw='https://raw.githubusercontent.com/xel92/widget-aktivnost/';
  await page.route(ref+'*',async route=>{
    if(offline)return route.abort('internetdisconnected');
+   if(apiBlocked)return route.fulfill({status:403,body:'rate limit'});
    if(hold)await new Promise(resolve=>{releaseRequest=resolve;});
    await route.fulfill({status:200,headers:{'content-type':'application/json','access-control-allow-origin':'*'},body:JSON.stringify({object:{sha:head}})});
  });
  await page.route(raw+'**',async route=>{
    if(offline)return route.abort('internetdisconnected');
    const [commit,folder,file]=new URL(route.request().url()).pathname.split('/').slice(3);
+   if(commit==='main'&&file==='BUNDLE.json'&&fallbackEnabled){const a=releases.get(head);return route.fulfill({status:200,headers:{'access-control-allow-origin':'*'},body:JSON.stringify({formatVersion:1,commit:head,html:a['HTML.html'],css:a['CSS.css'],js:a['JS.js']})});}
    requested.push({commit,file});
    if(changeHeadDuringAssets){head=changeHeadDuringAssets;changeHeadDuringAssets=null;}
    await new Promise(resolve=>setTimeout(resolve,40));
@@ -50,7 +53,7 @@ const release=n=>({
    await page.evaluate(raw=>{
      window.__raw=raw;dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:raw}}));
      window.send=(name='viewer',count=1)=>{for(let i=0;i<count;i++)dispatchEvent(new CustomEvent('onEventReceived',{detail:{listener:'message',event:{data:{nick:name,userId:name,displayName:name,tags:{}}}}}));};
-   },{...defaults,avatarEnabled:false,title:'Мой заголовок',displaySeconds:1,enterSeconds:.1,exitSeconds:.1,gapSeconds:0});
+   },{...defaults,avatarEnabled:false,testName:'xelennum',title:'Мой заголовок',displaySeconds:1,enterSeconds:.1,exitSeconds:.1,gapSeconds:0});
  }
  async function installed(n){
    await page.waitForFunction(n=>window.__chatThanksUpdater?.ready&&window.__chatThanks?.runtime?.ready&&window.__testVersion===n,n);
@@ -134,6 +137,13 @@ const release=n=>({
    assert.equal(await page.evaluate(()=>window.__chatThanks.runtime.engine.users.get('id:memory').messageCount),3);
    assert.equal(await page.evaluate(()=>window.__chatThanksUpdater.commit),sha(7));
    console.log('✓ Отдельная правка HTML добавляет элементы, сохраняя CSS и прогресс');
+   apiBlocked=true;fallbackEnabled=true;head=sha(8);await setup(true);await installed(8);
+   assert.equal(await page.evaluate(()=>window.__chatThanks.runtime.s.testName),'xelennum');
+   console.log('✓ Холодный запуск с xelennum и HTTP 403 GitHub API через резервный комплект');
+   offline=true;await setup(true);await check();
+   await page.evaluate(()=>dispatchEvent(new CustomEvent('onEventReceived',{detail:{listener:'widget-button',event:{field:'testAlert'}}})));
+   assert.match(await page.locator('#chatthanks-loader-diagnostic').textContent(),/Ошибка загрузки:.*резервный комплект:/);
+   console.log('✓ При недоступной сети исходная ошибка сохраняется в диагностике');
    assert.ok(errors.every(e=>e==='broken release'),errors.join('\n'));console.log('✓ Нет неожиданных ошибок JavaScript');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

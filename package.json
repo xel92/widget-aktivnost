@@ -10,7 +10,8 @@
     "test:autoupdate": "node tests/autoupdate.cjs",
     "test:diagnostics": "node tests/diagnostics.cjs",
     "test:appearance": "node tests/appearance.cjs",
-    "test:avatars": "node tests/avatars.cjs"
+    "test:avatars": "node tests/avatars.cjs",
+    "build:bundle": "node scripts/build-bundle.cjs"
   },
   "engines": {
     "node": ">=18"

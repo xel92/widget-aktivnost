@@ -71,7 +71,7 @@
       const text=await r.text();if(text.length>max)throw new Error('Файл превышает допустимый размер');return text;
     }finally{clearTimeout(timer);controllers.delete(controller);}
   }
-  async function download(){
+  async function downloadPinned(){
     const ref=JSON.parse(await request(REF_URL+'?t='+Date.now(),50000));
     const commit=ref?.object?.sha;
     if(!/^[a-f0-9]{40}$/.test(commit||''))throw new Error('GitHub не вернул SHA версии');
@@ -84,6 +84,17 @@
     const bundle={formatVersion:1,commit,html:results[0].value,css:results[1].value,js:results[2].value};
     if(!valid(bundle))throw new Error('Комплект HTML/CSS/JS повреждён или несовместим с установленными FIELDS/загрузчиком');
     return bundle;
+  }
+  async function download(){
+    try{return await downloadPinned();}
+    catch(primary){
+      // Один JSON содержит согласованные HTML/CSS/JS без обращения к GitHub API.
+      try{
+        const bundle=JSON.parse(await request(RAW+REF+'/widget/BUNDLE.json?t='+Date.now(),1200000));
+        if(!valid(bundle))throw new Error('Некорректный резервный комплект');
+        return bundle;
+      }catch(fallback){throw new Error(primary.message+'; резервный комплект: '+fallback.message);}
+    }
   }
   function mount(bundle){
     const next=parseHTML(bundle.html);
@@ -170,8 +181,8 @@
       else{candidate=bundle;await apply();}
     }catch(e){
       if(stopped)return;
-      warning('Не удалось получить обновление: '+e.message+'. Текущая версия продолжает работу.');
-      if(!source&&!lastApp){const cached=readCache();if(cached){candidate=cached;await apply();}else warning('Нет офлайн-копии комплекта. Нужна сеть или ручная установка трёх файлов.');}
+      warning('Не удалось получить обновление: '+e.message+(lastApp?'. Текущая версия продолжает работу.':''));
+      if(!source&&!lastApp){const cached=readCache();if(cached){candidate=cached;await apply();}else warning('Ошибка загрузки: '+e.message+'. Нет офлайн-копии комплекта.');}
     }finally{checking=false;}
   }
   const pagehide=()=>w.__chatThanksUpdater?.dispose();
