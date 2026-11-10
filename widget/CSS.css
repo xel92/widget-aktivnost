@@ -55,7 +55,7 @@ html, body { margin:0; background:transparent !important; }
 #thanks-root .thanks-title-star { margin-left:auto; font-size:13px; opacity:.7; }
 #thanks-root h1 { margin:11px 0 9px; font-family:Georgia,"Times New Roman",serif; font-size:var(--name-size); line-height:1.12; font-weight:500; letter-spacing:.2px; overflow-wrap:anywhere; text-shadow:0 1px 16px #f1cc7912; }
 #thanks-root p { margin:0; font-size:var(--message-size); font-weight:400; line-height:1.45; opacity:.82; overflow-wrap:anywhere; white-space:pre-wrap; text-wrap:balance; }
-#thanks-root .thanks-stats { display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; margin-top:17px; color:var(--jade); font-size:calc(var(--font) * .49); line-height:1.5; letter-spacing:.15px; }
+#thanks-root .thanks-stats { display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; margin-top:17px; color:var(--jade); font-family:var(--stats-font, "Segoe UI", Arial, sans-serif); font-size:var(--stats-size, calc(var(--font) * .49)); line-height:1.5; letter-spacing:.15px; }
 #thanks-root .thanks-stats span { display:inline-flex; gap:6px; align-items:center; }
 #thanks-root .thanks-stats span::before { content:""; width:3px; height:3px; border:1px solid var(--secondary); transform:rotate(45deg); flex:0 0 3px; opacity:.9; }
 #thanks-root .thanks-progress { position:absolute; z-index:3; height:1px; bottom:7px; left:calc(var(--radius) + 7px); right:calc(var(--radius) + 7px); background:linear-gradient(90deg,transparent,var(--jade) 16%,var(--secondary) 80%,transparent); transform-origin:left; }
@@ -106,3 +106,30 @@ html, body { margin:0; background:transparent !important; }
 #thanks-root .thanks-avatar-placeholder { color:var(--jade); font-family:Georgia,serif; font-size:28px; }
 #thanks-root .thanks-icon[data-avatar="loading"] .thanks-seal > svg,
 #thanks-root .thanks-icon[data-avatar="ready"] .thanks-seal > svg { opacity:0; }
+
+/* Три ступени: нефрит, золото, аметист. */
+#thanks-root .thanks-name-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:11px 0 9px; }
+#thanks-root .thanks-name-row h1 { margin:0; }
+#thanks-root #thanks-rank { font:10px/1.5 "Segoe UI",Arial,sans-serif; letter-spacing:1.2px; text-transform:uppercase; padding:5px 9px; border:1px solid #a4e9cc55; border-radius:3px; color:var(--jade); overflow-wrap:anywhere; max-width:100%; }
+#thanks-root[data-rank="1"] { --jade:#9fe0c8; }
+#thanks-root[data-rank="2"] .thanks-card { --jade:#f6d995; --secondary:#f2c66a; }
+#thanks-root[data-rank="2"] .thanks-card { background:radial-gradient(ellipse at 12% 50%,#6d492d88,transparent 55%),linear-gradient(120deg,#29251e,#1e1829); border-color:#d4a953aa; box-shadow:0 12px 40px #0005,0 0 23px #edb64c12; }
+#thanks-root[data-rank="2"] .thanks-card::after { border-color:#f2c66a40; }
+#thanks-root[data-rank="2"] .thanks-avatar-shell { box-shadow:0 0 30px #f0bd4730; }
+#thanks-root[data-rank="2"] #thanks-rank { background:#d9aa4715; border-color:#e8ba6470; }
+#thanks-root[data-rank="3"] .thanks-card { --jade:#dcc2ff; --secondary:#ffe2a0; }
+#thanks-root[data-rank="3"] .thanks-card { padding-top:42px; padding-bottom:44px; background:radial-gradient(ellipse at 13% 50%,#6445a977,transparent 50%),linear-gradient(115deg,#231735,#151b35 70%); border-color:#e6c58d; box-shadow:0 14px 40px #0005,0 0 35px #a879ff25; }
+#thanks-root[data-rank="3"] .thanks-card::after { inset:9px; border-color:#e1c38c55; }
+#thanks-root[data-rank="3"] .thanks-icon { flex-basis:clamp(64px,calc(var(--width) / 5.3),116px); }
+#thanks-root[data-rank="3"] .thanks-avatar-shell { box-shadow:0 0 35px #b47aff55; outline:1px dashed #efd29980; outline-offset:7px; }
+#thanks-root[data-rank="3"] #thanks-rank { color:#ffe2a0; background:#dcb36f19; border-color:#efd29988; }
+#thanks-root[data-rank="2"] .thanks-landscape { opacity:.26; }
+#thanks-root[data-rank="3"] .thanks-landscape { opacity:.32; }
+#thanks-root[data-rank="3"] .thanks-particles i { box-shadow:0 0 7px var(--secondary); width:3px; height:3px; }
+#thanks-root[data-rank="2"] .thanks-card.enter { animation-name:thanks-master-enter; }
+#thanks-root[data-rank="3"] .thanks-card.enter { animation-name:thanks-celestial-enter; }
+@keyframes thanks-master-enter { from { opacity:0; transform:translateY(22px) scale(.96); } to { opacity:1; transform:none; } }
+@keyframes thanks-celestial-enter { from { opacity:0; transform:translateY(32px) scale(.9); } to { opacity:1; transform:none; } }
+@media(prefers-reduced-motion:reduce) {
+ #thanks-root[data-rank="2"] .thanks-card.enter,#thanks-root[data-rank="3"] .thanks-card.enter { animation-name:thanks-fade-in; }
+}

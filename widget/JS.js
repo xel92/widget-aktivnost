@@ -2,14 +2,17 @@
 /* StreamElements Chat Thanks — автономный ES6+, без внешних зависимостей. */
 (function (global) {
   'use strict';
-  const VERSION = 1;
+  const VERSION = 2;
   const MINUTE = 60000;
   const DEFAULTS = {
+    ranksEnabled:true, rank1Enabled:true, showPosition:true, rank2Enabled:true, rank3Enabled:true, rank2Minutes:120, rank3Minutes:180,
+    rank1Name:'Адепт', rank2Name:'Мастер', rank3Name:'Небожитель',
+    rank1Text:'Твой путь в нашей обители начался.', rank2Text:'Твоё присутствие придаёт чату силу.', rank3Text:'Твоё имя вписано в легенды нашего чата.', testRank:1,
     rewardMinutes:60, minMessages:5, recentMinutes:10, checkSeconds:15,
     excludeBots:true, excludedUsers:'', allowRepeat:false, maxUsers:2000, maxQueue:50,
     title:'ЛЕГЕНДА ЧАТА', thankText:'Спасибо, что провёл с нами целый час! 💜',
     primaryColor:'#a879ff', secondaryColor:'#f1cc79', backgroundColor:'#151123', textColor:'#fff7ed',
-    titleFont:'Segoe UI', titleFontSize:12, nameFontSize:38, messageFontSize:22, iconDelaySeconds:.25, fontSize:22, cardWidth:580, cornerRadius:24, position:'bottom-right',
+    statsFont:'Segoe UI', statsFontSize:11, titleFont:'Segoe UI', titleFontSize:12, nameFontSize:38, messageFontSize:22, iconDelaySeconds:.25, fontSize:22, cardWidth:580, cornerRadius:24, position:'bottom-right',
     enterSeconds:.65, displaySeconds:7, exitSeconds:.55, gapSeconds:1,
     particles:true, avatarEnabled:true, showMessages:true, showMinutes:true, soundEnabled:false, soundFile:'', volume:50,
     persistence:true, saveSeconds:15, retentionHours:48, resetMode:'idle', idleHours:6,
@@ -17,8 +20,8 @@
     testMode:false, testRewardSeconds:10, testName:'NightWalker', testMessages:5
   };
   const RANGES = {
-    rewardMinutes:[1,1440], minMessages:[1,10000], recentMinutes:[1,1440], checkSeconds:[10,30],
-    maxUsers:[10,10000], maxQueue:[1,500], titleFontSize:[8,48], nameFontSize:[12,96], messageFontSize:[10,64], fontSize:[12,48], cardWidth:[280,1000], cornerRadius:[0,60],
+    rank2Minutes:[1,10080], rank3Minutes:[1,10080], testRank:[1,3], rewardMinutes:[1,1440], minMessages:[1,10000], recentMinutes:[1,1440], checkSeconds:[10,30],
+    statsFontSize:[8,36], maxUsers:[10,10000], maxQueue:[1,500], titleFontSize:[8,48], nameFontSize:[12,96], messageFontSize:[10,64], fontSize:[12,48], cardWidth:[280,1000], cornerRadius:[0,60],
     enterSeconds:[.1,5], displaySeconds:[1,60], exitSeconds:[.1,5], gapSeconds:[0,30],
     iconDelaySeconds:[0,2], volume:[0,100], saveSeconds:[5,60], retentionHours:[1,720], idleHours:[1,168],
     testRewardSeconds:[1,600], testMessages:[1,10000]
@@ -54,11 +57,16 @@
     if(!Object.prototype.hasOwnProperty.call(raw,'titleFontSize'))s.titleFontSize=s.fontSize*.46;
     if(!Object.prototype.hasOwnProperty.call(raw,'nameFontSize'))s.nameFontSize=s.fontSize*1.7;
     if(!Object.prototype.hasOwnProperty.call(raw,'messageFontSize'))s.messageFontSize=s.fontSize;
+    if(!Object.prototype.hasOwnProperty.call(raw,'statsFontSize'))s.statsFontSize=s.fontSize*.49;
+    if(!Object.prototype.hasOwnProperty.call(TITLE_FONTS,s.statsFont))s.statsFont=DEFAULTS.statsFont;
     if(!Object.prototype.hasOwnProperty.call(TITLE_FONTS,s.titleFont))s.titleFont=DEFAULTS.titleFont;
     if (!['top-left','top-right','bottom-left','bottom-right','center'].includes(s.position)) s.position=DEFAULTS.position;
     if (!['idle','manual'].includes(s.resetMode)) s.resetMode='idle';
     if (!['writer','observer'].includes(s.instanceRole)) s.instanceRole='observer';
     s.storageNamespace = s.storageNamespace.replace(/[^a-z\d]/gi,'').slice(0,48) || DEFAULTS.storageNamespace;
+    s.rank2Minutes=Math.max(s.rewardMinutes+1,s.rank2Minutes);
+    s.rank3Minutes=Math.max(s.rank2Minutes+1,s.rank3Minutes);
+    s.testRank=Math.round(s.testRank);
     s.exclusions = new Set(s.excludedUsers.split(/[,;\s]+/).map(login).filter(Boolean));
     return s;
   }
@@ -92,12 +100,24 @@
       this.users.clear(); this.queue=[]; this.pending.clear(); this.seenMessages.clear(); this.dirty=true;
     }
     excluded(u) { return this.s.exclusions.has(u.username) || this.s.exclusions.has(login(u.userId)) || (this.s.excludeBots && BOTS.has(u.username)); }
+    rankAt(u,now=this.now()) {
+      const elapsed=now-u.firstSeenAt;
+      const unit=this.s.testMode?this.s.testRewardSeconds*1000/this.s.rewardMinutes:MINUTE;
+      if(this.s.rank3Enabled&&elapsed>=this.s.rank3Minutes*unit)return 3;
+      if(this.s.rank2Enabled&&elapsed>=this.s.rank2Minutes*unit)return 2;
+      return this.s.rank1Enabled&&elapsed>=this.s.rewardMinutes*unit?1:0;
+    }
+    position(u) {
+      let place=1;
+      for(const other of this.users.values())if(!this.excluded(other)&&other.messageCount>u.messageCount)place++;
+      return place;
+    }
     checkRewardEligibility(u, now=this.now()) {
       const wait=this.s.testMode ? this.s.testRewardSeconds*1000 : this.s.rewardMinutes*MINUTE;
       return !!u && u.sessionId===this.sessionId && !this.excluded(u) && !this.pending.has(this.key(u)) &&
         now>=u.firstSeenAt && now-u.firstSeenAt>=wait && now-u.lastMessageAt<=this.s.recentMinutes*MINUTE &&
         now>=u.lastMessageAt && u.messageCount>=this.s.minMessages &&
-        (!u.rewarded || (this.s.allowRepeat && now-u.rewardedAt>=wait && u.lastMessageAt>u.rewardedAt));
+        (this.s.ranksEnabled ? this.rankAt(u,now)>(u.rewardedRank||0) : (!u.rewarded || (this.s.allowRepeat && now-u.rewardedAt>=wait && u.lastMessageAt>u.rewardedAt)));
     }
     key(u) { return u.userId ? `id:${u.userId}` : `login:${u.username}`; }
     maintain(now=this.now()) {
@@ -136,7 +156,7 @@
       if (!u) {
         if (this.users.size>=this.s.maxUsers) return;
         u={userId:m.userId||'', username:m.username, displayName:m.displayName||m.username,
-          firstSeenAt:now,lastMessageAt:now,messageCount:0,rewarded:false,rewardedAt:null,sessionId:this.sessionId};
+          firstSeenAt:now,lastMessageAt:now,messageCount:0,rewardedRank:0,rewarded:false,rewardedAt:null,sessionId:this.sessionId};
         this.users.set(k,u);
       }
       u.username=m.username || u.username; u.displayName=m.displayName||u.displayName;
@@ -157,8 +177,10 @@
         const u=this.users.get(k), now=this.now();
         // Очередь могла ждать долго: проверяем актуальность ещё раз.
         if (!this.checkRewardEligibility(u,now)) continue;
+        const rank=this.s.ranksEnabled?this.rankAt(u,now):0;
+        u.rewardedRank=Math.max(u.rewardedRank||0,rank);
         u.rewarded=true; u.rewardedAt=now;
-        return {...u};
+        return {...u,rank,chatPosition:this.position(u)};
       }
       return null;
     }
@@ -168,7 +190,7 @@
     }
     restore(data) {
       const now=this.now();
-      if (!data || data.schemaVersion!==VERSION || typeof data.sessionId!=='string' || !data.sessionId ||
+      if (!data || ![1,VERSION].includes(data.schemaVersion) || typeof data.sessionId!=='string' || !data.sessionId ||
         !finite(data.startedAt) || !finite(data.lastActivityAt) || !finite(data.updatedAt) ||
         data.startedAt<0 || data.startedAt>now+MINUTE || data.lastActivityAt<data.startedAt || data.lastActivityAt>now+MINUTE ||
         data.updatedAt>now+MINUTE || !Array.isArray(data.users)) return false;
@@ -183,6 +205,7 @@
           (raw.rewarded && (!finite(raw.rewardedAt) || raw.rewardedAt<raw.firstSeenAt || raw.rewardedAt>now+MINUTE))) continue;
         const u={userId:clean(raw.userId),username:login(raw.username),displayName:clean(raw.displayName),
           firstSeenAt:raw.firstSeenAt,lastMessageAt:raw.lastMessageAt,messageCount:raw.messageCount,
+          rewardedRank:Number.isInteger(raw.rewardedRank)&&raw.rewardedRank>=0&&raw.rewardedRank<=3?raw.rewardedRank:(raw.rewarded?1:0),
           rewarded:raw.rewarded,rewardedAt:raw.rewarded?raw.rewardedAt:null,sessionId:data.sessionId};
         if (!u.userId && !u.username) continue;
         if (!u.rewarded && now-u.lastMessageAt>this.s.retentionHours*3600000) continue;
@@ -317,7 +340,7 @@
       this.timers=new Map();this.audio=null;this.stopped=false;this.avatars=new AvatarLookup();this.avatarGeneration=0;this.stopAvatar=null;
       if (!this.root || !this.card) throw new Error('Нет HTML виджета');
       const vars={primary:s.primaryColor,secondary:s.secondaryColor,panel:s.backgroundColor,ink:s.textColor,
-        'title-font':TITLE_FONTS[s.titleFont],'title-size':s.titleFontSize+'px','name-size':s.nameFontSize+'px','message-size':s.messageFontSize+'px','icon-delay':(s.enterSeconds+Math.min(s.iconDelaySeconds,Math.max(0,s.displaySeconds-.45)))+'s',
+        'stats-font':TITLE_FONTS[s.statsFont],'stats-size':s.statsFontSize+'px','title-font':TITLE_FONTS[s.titleFont],'title-size':s.titleFontSize+'px','name-size':s.nameFontSize+'px','message-size':s.messageFontSize+'px','icon-delay':(s.enterSeconds+Math.min(s.iconDelaySeconds,Math.max(0,s.displaySeconds-.45)))+'s',
         font:s.fontSize+'px',width:s.cardWidth+'px',radius:s.cornerRadius+'px',enter:s.enterSeconds+'s',hold:s.displaySeconds+'s',exit:s.exitSeconds+'s'};
       for(const [k,v] of Object.entries(vars))this.root.style.setProperty('--'+k,v);
       this.root.dataset.position=s.position;
@@ -355,11 +378,17 @@
     async show(u,now) {
       if(this.stopped)return;
       const d=this.doc,s=this.s;
+      const rank=s.ranksEnabled?Math.max(1,Math.min(3,u.rank||1)):0;
+      this.root.dataset.rank=String(rank);
+      const badge=d.getElementById('thanks-rank');
+      if(badge){badge.textContent=rank?s['rank'+rank+'Name']:'';badge.hidden=!rank;}
+      const position=d.getElementById('thanks-position');
+      if(position){position.textContent=u.chatPosition?'№ '+u.chatPosition+' в чате':'';position.hidden=!s.showPosition||!u.chatPosition;}
       this.prepareAvatar(u);
       // Все имена и шаблоны выводятся textContent, никогда innerHTML.
       d.getElementById('thanks-title').textContent=format(s.title,u,now);
       d.getElementById('thanks-name').textContent=u.displayName;
-      d.getElementById('thanks-text').textContent=format(s.thankText,u,now);
+      d.getElementById('thanks-text').textContent=format(rank?s['rank'+rank+'Text']:s.thankText,u,now);
       const mins=d.getElementById('thanks-minutes'), msgs=d.getElementById('thanks-messages');
       mins.textContent=`${Math.max(0,Math.floor((now-u.firstSeenAt)/MINUTE))} мин · с первого сообщения`;
       msgs.textContent=`${u.messageCount} сообщ.`; mins.hidden=!s.showMinutes;msgs.hidden=!s.showMessages;
@@ -458,7 +487,8 @@
           }
           if(field==='testAlert') {
             if(demos.length>=s.maxQueue)return;
-            demos.push({username:login(s.testName),displayName:s.testName,firstSeenAt:now()-s.rewardMinutes*MINUTE,messageCount:s.testMessages});runtime.pump();
+            const rank=s.testRank,minutes=rank===1?s.rewardMinutes:s['rank'+rank+'Minutes'];
+            demos.push({rank,chatPosition:3,username:login(s.testName),displayName:s.testName,firstSeenAt:now()-minutes*MINUTE,messageCount:s.testMessages});runtime.pump();
           }
           if((field==='resetSession'||field==='clearData')&&active()){
             // Не допускаем завершения старой асинхронной записи после сброса: boot ждёт её.

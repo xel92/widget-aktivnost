@@ -1,9 +1,9 @@
 {
   "rewardMinutes": {
     "type": "number",
-    "label": "Минут с первого сообщения до награды",
+    "label": "Первый ранг: минут с первого сообщения",
     "value": 60,
-    "group": "Активность",
+    "group": "Ранги и активность",
     "min": 1,
     "max": 1440,
     "step": 1
@@ -49,7 +49,7 @@
   },
   "allowRepeat": {
     "type": "checkbox",
-    "label": "Разрешить повтор через новый интервал после награды",
+    "label": "Повторять одиночную награду (только при отключённых рангах)",
     "value": false,
     "group": "Активность"
   },
@@ -396,5 +396,123 @@
     "label": "Показать тестовую анимацию без записи прогресса",
     "value": "test",
     "group": "Тестирование"
+  },
+  "statsFont": {
+    "type": "dropdown",
+    "label": "Шрифт статистики: время и сообщения",
+    "value": "Segoe UI",
+    "group": "Внешний вид",
+    "options": {
+      "Segoe UI": "Segoe UI — современный",
+      "Arial": "Arial — простой",
+      "Georgia": "Georgia — с засечками",
+      "Times New Roman": "Times New Roman — классический",
+      "Verdana": "Verdana — широкий",
+      "Courier New": "Courier New — моноширинный"
+    }
+  },
+  "statsFontSize": {
+    "type": "slider",
+    "label": "Размер текста статистики, px",
+    "value": 11,
+    "group": "Внешний вид",
+    "min": 8,
+    "max": 36,
+    "step": 1
+  },
+  "ranksEnabled": {
+    "type": "checkbox",
+    "label": "Три ранга (отключено — прежняя одиночная награда)",
+    "value": true,
+    "group": "Ранги и активность"
+  },
+  "showPosition": {
+    "type": "checkbox",
+    "label": "Показывать место по числу сообщений",
+    "value": true,
+    "group": "Ранги и активность"
+  },
+  "rank1Name": {
+    "type": "text",
+    "label": "Ранг 1: название",
+    "value": "Адепт",
+    "group": "Ранги и активность"
+  },
+  "rank1Text": {
+    "type": "text",
+    "label": "Ранг 1: фраза благодарности",
+    "value": "Твой путь в нашей обители начался.",
+    "group": "Ранги и активность"
+  },
+  "rank2Name": {
+    "type": "text",
+    "label": "Ранг 2: название",
+    "value": "Мастер",
+    "group": "Ранги и активность"
+  },
+  "rank2Text": {
+    "type": "text",
+    "label": "Ранг 2: фраза благодарности",
+    "value": "Твоё присутствие придаёт чату силу.",
+    "group": "Ранги и активность"
+  },
+  "rank2Enabled": {
+    "type": "checkbox",
+    "label": "Включить ранг 2",
+    "value": true,
+    "group": "Ранги и активность"
+  },
+  "rank2Minutes": {
+    "type": "number",
+    "label": "Ранг 2: минут с первого сообщения (больше предыдущего)",
+    "value": 120,
+    "group": "Ранги и активность",
+    "min": 1,
+    "max": 10080,
+    "step": 1
+  },
+  "rank3Name": {
+    "type": "text",
+    "label": "Ранг 3: название",
+    "value": "Небожитель",
+    "group": "Ранги и активность"
+  },
+  "rank3Text": {
+    "type": "text",
+    "label": "Ранг 3: фраза благодарности",
+    "value": "Твоё имя вписано в легенды нашего чата.",
+    "group": "Ранги и активность"
+  },
+  "rank3Enabled": {
+    "type": "checkbox",
+    "label": "Включить ранг 3",
+    "value": true,
+    "group": "Ранги и активность"
+  },
+  "rank3Minutes": {
+    "type": "number",
+    "label": "Ранг 3: минут с первого сообщения (больше предыдущего)",
+    "value": 180,
+    "group": "Ранги и активность",
+    "min": 1,
+    "max": 10080,
+    "step": 1
+  },
+  "testRank": {
+    "type": "dropdown",
+    "label": "Ранг для тестовой анимации",
+    "value": 1,
+    "group": "Ранги и активность",
+    "options": {
+      "1": "Адепт — первый",
+      "2": "Мастер — второй",
+      "3": "Небожитель — третий"
+    }
+  },
+  "rank1Enabled": {
+    "type": "checkbox",
+    "label": "Включить ранг 1",
+    "value": true,
+    "group": "Ранги и активность"
   }
 }

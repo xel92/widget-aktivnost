@@ -45,5 +45,21 @@
   "titleFontSize": 12,
   "nameFontSize": 38,
   "messageFontSize": 22,
-  "avatarEnabled": true
+  "avatarEnabled": true,
+  "statsFont": "Segoe UI",
+  "statsFontSize": 11,
+  "ranksEnabled": true,
+  "showPosition": true,
+  "rank1Name": "Адепт",
+  "rank1Text": "Твой путь в нашей обители начался.",
+  "rank2Name": "Мастер",
+  "rank2Text": "Твоё присутствие придаёт чату силу.",
+  "rank2Enabled": true,
+  "rank2Minutes": 120,
+  "rank3Name": "Небожитель",
+  "rank3Text": "Твоё имя вписано в легенды нашего чата.",
+  "rank3Enabled": true,
+  "rank3Minutes": 180,
+  "testRank": 1,
+  "rank1Enabled": true
 }
