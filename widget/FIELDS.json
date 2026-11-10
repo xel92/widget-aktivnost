@@ -532,5 +532,23 @@
     "label": "Показать оформление: Небожитель",
     "value": "rank3",
     "group": "Тестирование"
+  },
+  "pinPreview": {
+    "type": "button",
+    "label": "Закрепить плашку для настройки",
+    "value": "pinPreview",
+    "group": "Тестирование"
+  },
+  "hidePreview": {
+    "type": "button",
+    "label": "Скрыть закреплённую плашку",
+    "value": "hidePreview",
+    "group": "Тестирование"
+  },
+  "previewPinned": {
+    "type": "checkbox",
+    "label": "Держать плашку видимой после сохранения (режим настройки)",
+    "value": false,
+    "group": "Тестирование"
   }
 }

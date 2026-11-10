@@ -17,7 +17,7 @@
     particles:true, avatarEnabled:true, showMessages:true, showMinutes:true, soundEnabled:false, soundFile:'', volume:50,
     persistence:true, saveSeconds:15, retentionHours:48, resetMode:'idle', idleHours:6,
     storageNamespace:'ChatThanksV1', instanceRole:'writer', resetToken:'initial',
-    testMode:false, testRewardSeconds:10, testName:'NightWalker', testMessages:5
+    previewPinned:false, testMode:false, testRewardSeconds:10, testName:'NightWalker', testMessages:5
   };
   const RANGES = {
     rank2Minutes:[1,10080], rank3Minutes:[1,10080], testRank:[1,3], rewardMinutes:[1,1440], minMessages:[1,10000], recentMinutes:[1,1440], checkSeconds:[10,30],
@@ -376,6 +376,7 @@
 
     delay(ms) { return new Promise(resolve=>{ const t=setTimeout(()=>{this.timers.delete(t);resolve();},ms);this.timers.set(t,resolve); }); }
     async show(u,now) {
+      this.pinned=!!u.pinned;this.previewCancelled=false;
       if(this.stopped)return;
       const d=this.doc,s=this.s;
       const rank=u.demoRank|| (s.ranksEnabled?Math.max(1,Math.min(3,u.rank||1)):0);
@@ -404,12 +405,22 @@
       }
       await this.delay(s.enterSeconds*1000);if(this.stopped)return;
       this.card.className='thanks-card hold';
-      await this.delay(s.displaySeconds*1000);if(this.stopped)return;
+      if(this.pinned&&!this.previewCancelled){
+        this.card.querySelector('.thanks-progress').hidden=true;
+        await new Promise(resolve=>{this.releasePinned=resolve;});
+        this.releasePinned=null;
+      }else if(!this.previewCancelled)await this.delay(s.displaySeconds*1000);
+      this.card.querySelector('.thanks-progress').hidden=false;if(this.stopped)return;
       this.card.className='thanks-card exit';
       await this.delay(s.exitSeconds*1000);this.card.hidden=true;if(this.stopAvatar){this.stopAvatar();this.stopAvatar=null;}
       if(this.audio){this.audio.pause();this.audio=null;}
     }
-    dispose() { this.stopped=true;this.avatarGeneration++;if(this.stopAvatar)this.stopAvatar();for(const [t,resolve] of this.timers){clearTimeout(t);resolve();}this.timers.clear();this.card.hidden=true;if(this.audio)this.audio.pause(); }
+    unpin(){
+      if(!this.pinned)return;this.previewCancelled=true;this.pinned=false;
+      if(this.releasePinned)this.releasePinned();
+      for(const [t,resolve] of this.timers){clearTimeout(t);resolve();}this.timers.clear();
+    }
+    dispose() { this.unpin();this.stopped=true;this.avatarGeneration++;if(this.stopAvatar)this.stopAvatar();for(const [t,resolve] of this.timers){clearTimeout(t);resolve();}this.timers.clear();this.card.hidden=true;if(this.audio)this.audio.pause(); }
   }
   const exported={DEFAULTS,settings,Engine,Persistence,Renderer,parseMessage,format,normalizeEvent,AvatarLookup,avatarURL};
   if(typeof module!=='undefined' && module.exports)module.exports=exported;
@@ -438,6 +449,9 @@
     const renderer=new Renderer(s,global.document);
     let stopped=false,busy=false,interval,saveTimer,flushing=false,updating=false,testTimer;
     const demos=[];
+    const makePreview=(rank,pinned=false)=>({pinned,rank,demoRank:rank,chatPosition:3,username:login(s.testName),displayName:s.testName,firstSeenAt:now()-(rank===1?s.rewardMinutes:s['rank'+rank+'Minutes'])*MINUTE,messageCount:s.testMessages});
+    if(global.__CHAT_THANKS_PIN_SETTING__!==s.previewPinned||global.__CHAT_THANKS_PINNED__===undefined){global.__CHAT_THANKS_PINNED__=s.previewPinned;global.__CHAT_THANKS_PIN_SETTING__=s.previewPinned;}
+    if(global.__CHAT_THANKS_PINNED__)demos.push(makePreview(s.testRank,true));
     const alive=()=>!stopped&&!app.disposed;
     const active=()=>alive()&&!storage.blocked&&s.instanceRole==='writer';
     const runtime={engine,storage,renderer,s,ready:false,
@@ -498,10 +512,21 @@
             },s.testRewardSeconds*1000+50);
             runtime.pump();
           }
+          if(field==='hidePreview'){
+            global.__CHAT_THANKS_PINNED__=false;
+            for(let i=demos.length-1;i>=0;i--)if(demos[i].pinned)demos.splice(i,1);
+            renderer.unpin();return;
+          }
+          if(field==='pinPreview'){
+            global.__CHAT_THANKS_PINNED__=true;
+            for(let i=demos.length-1;i>=0;i--)if(demos[i].pinned)demos.splice(i,1);
+            renderer.unpin();demos.unshift(makePreview(s.testRank,true));runtime.pump();return;
+          }
           if(['testAlert','testRank1','testRank2','testRank3'].includes(field)) {
             if(demos.length>=s.maxQueue)return;
             const rank=field==='testAlert'?s.testRank:Number(field.slice(-1)),minutes=rank===1?s.rewardMinutes:s['rank'+rank+'Minutes'];
-            demos.push({rank,demoRank:rank,chatPosition:3,username:login(s.testName),displayName:s.testName,firstSeenAt:now()-minutes*MINUTE,messageCount:s.testMessages});runtime.pump();
+            if(global.__CHAT_THANKS_PINNED__){renderer.unpin();for(let i=demos.length-1;i>=0;i--)if(demos[i].pinned)demos.splice(i,1);}
+            demos.push(makePreview(rank,!!global.__CHAT_THANKS_PINNED__));runtime.pump();
           }
           if((field==='resetSession'||field==='clearData')&&active()){
             // Не допускаем завершения старой асинхронной записи после сброса: boot ждёт её.
@@ -552,7 +577,7 @@
     if(app.runtime)app.runtime.storage.observe(detail);
     if(app.runtime&&app.runtime.ready)app.runtime.event(detail);
     else {
-      if(detail.listener==='widget-button'&&detail.event&&['testAlert','testActivity','testRank1','testRank2','testRank3'].includes(detail.event.field))
+      if(detail.listener==='widget-button'&&detail.event&&['testAlert','testActivity','testRank1','testRank2','testRank3','pinPreview','hidePreview'].includes(detail.event.field))
         diagnostic(lastStatus||'Виджет ещё запускается. Подождите несколько секунд. Если сообщение остаётся, проверьте вкладку HTML.');
       if(['message','widget-button'].includes(detail.listener)&&app.pending.length<5000)app.pending.push(detail);
     }

@@ -5,6 +5,11 @@ const click=field=>p.evaluate(field=>dispatchEvent(new CustomEvent('onEventRecei
 await boot({ranksEnabled:false,instanceRole:'observer'});
 for(const n of [1,2,3]){await click('testRank'+n);await p.waitForFunction(n=>!document.querySelector('#thanks-card').hidden&&document.querySelector('#thanks-root').dataset.rank===String(n),n);assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.size),0);await p.waitForFunction(()=>document.querySelector('#thanks-card').hidden);}
 console.log('✓ Три отдельные кнопки работают без тестового режима, даже при отключённых рангах и роли наблюдателя');
+await click('pinPreview');await p.waitForFunction(()=>document.querySelector('#thanks-card').classList.contains('hold'));await p.waitForTimeout(1600);assert.ok(await p.locator('#thanks-card').isVisible());
+await click('testRank3');await p.waitForFunction(()=>document.querySelector('#thanks-root').dataset.rank==='3'&&document.querySelector('#thanks-card').classList.contains('hold'));await p.waitForTimeout(1600);assert.ok(await p.locator('#thanks-card').isVisible());
+await click('hidePreview');await p.waitForFunction(()=>document.querySelector('#thanks-card').hidden);
+await boot({previewPinned:true,rank1Name:'Новый заголовок'});await p.waitForFunction(()=>document.querySelector('#thanks-title').textContent==='Новый заголовок'&&!document.querySelector('#thanks-card').hidden);await click('hidePreview');await p.waitForFunction(()=>document.querySelector('#thanks-card').hidden);
+console.log('✓ Закрепление дольше таймера, переключение ранга, скрытие и режим после сохранения');
 await boot({testMode:true,testRewardSeconds:1,minMessages:8,testMessages:1,testName:'xelennum'});
 await p.evaluate(()=>{window.__CHAT_THANKS_PREVIEW__={now:Date.now};dispatchEvent(new CustomEvent('onEventReceived',{detail:{listener:'message',event:{data:{nick:'real',userId:'real'}}}}));});assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.size),0);
 for(let i=0;i<2;i++){await click('testActivity');await p.waitForFunction(()=>!document.querySelector('#thanks-card').hidden);assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.get('id:synthetic-test-viewer').rewardedRank),1);await p.waitForFunction(()=>document.querySelector('#thanks-card').hidden);}
