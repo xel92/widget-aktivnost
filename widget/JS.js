@@ -378,7 +378,7 @@
     async show(u,now) {
       if(this.stopped)return;
       const d=this.doc,s=this.s;
-      const rank=s.ranksEnabled?Math.max(1,Math.min(3,u.rank||1)):0;
+      const rank=u.demoRank|| (s.ranksEnabled?Math.max(1,Math.min(3,u.rank||1)):0);
       this.root.dataset.rank=String(rank);
       const badge=d.getElementById('thanks-rank');
       if(badge){badge.textContent=rank?s['rank'+rank+'Name']:'';badge.hidden=!rank;}
@@ -436,7 +436,7 @@
     let local;try{local=global.localStorage;}catch(_){local=null;}
     const storage=new Persistence(s,global.SE_API,local,status);
     const renderer=new Renderer(s,global.document);
-    let stopped=false,busy=false,interval,saveTimer,flushing=false,updating=false;
+    let stopped=false,busy=false,interval,saveTimer,flushing=false,updating=false,testTimer;
     const demos=[];
     const alive=()=>!stopped&&!app.disposed;
     const active=()=>alive()&&!storage.blocked&&s.instanceRole==='writer';
@@ -450,7 +450,7 @@
         return {key:storage.key,snapshot:engine.snapshot()};
       },
       resumeAfterUpdate(){updating=false;if(active()){engine.tick();runtime.pump();}},
-      dispose(){stopped=true;runtime.ready=false;clearInterval(interval);clearInterval(saveTimer);storage.dispose();renderer.dispose();},
+      dispose(){stopped=true;runtime.ready=false;clearInterval(interval);clearInterval(saveTimer);clearTimeout(testTimer);storage.dispose();renderer.dispose();},
       async flush(force=false){
         if(!active()||!s.persistence||(!engine.dirty&&!force))return;
         if(flushing){if(force && storage.inflight){await storage.inflight;return runtime.flush(true);}return;}
@@ -482,26 +482,39 @@
           if(field==='testActivity' && !active()){diagnostic('Тест условий остановлен: оставьте один активный экземпляр и роль «Активный».');return;}
           if(field==='testActivity' && !s.testMode){diagnostic('Для тестовых сообщений включите «Изолированный тест», сохраните и обновите виджет.');return;}
           if(field==='testActivity' && active() && s.testMode){
-            for(let i=0;i<s.testMessages;i++)engine.message({userId:'synthetic-test-viewer',username:login(s.testName),displayName:s.testName});
+            // Каждый запуск создаёт новый тестовый прогресс, не затрагивая Live.
+            const key='id:synthetic-test-viewer';
+            clearTimeout(testTimer);engine.users.delete(key);engine.pending.delete(key);
+            engine.queue=engine.queue.filter(k=>k!==key);
+            const count=Math.max(s.testMessages,s.minMessages);
+            const synthetic={userId:'synthetic-test-viewer',username:login(s.testName),displayName:s.testName};
+            if(engine.excluded(synthetic)){diagnostic('Тестовый логин исключён настройками. Выберите другой тестовый ник.');return;}
+            for(let i=0;i<count;i++)engine.message(synthetic);
+            diagnostic('Изолированный тест запущен: '+count+' сообщений. Проверка через '+s.testRewardSeconds+' сек. Реальный чат не учитывается.');
+            testTimer=setTimeout(()=>{
+              if(!active())return;
+              // Подтверждаем активность синтетическим сообщением даже при длинном тестовом пороге.
+              engine.message(synthetic);engine.tick();runtime.pump();
+            },s.testRewardSeconds*1000+50);
             runtime.pump();
           }
-          if(field==='testAlert') {
+          if(['testAlert','testRank1','testRank2','testRank3'].includes(field)) {
             if(demos.length>=s.maxQueue)return;
-            const rank=s.testRank,minutes=rank===1?s.rewardMinutes:s['rank'+rank+'Minutes'];
-            demos.push({rank,chatPosition:3,username:login(s.testName),displayName:s.testName,firstSeenAt:now()-minutes*MINUTE,messageCount:s.testMessages});runtime.pump();
+            const rank=field==='testAlert'?s.testRank:Number(field.slice(-1)),minutes=rank===1?s.rewardMinutes:s['rank'+rank+'Minutes'];
+            demos.push({rank,demoRank:rank,chatPosition:3,username:login(s.testName),displayName:s.testName,firstSeenAt:now()-minutes*MINUTE,messageCount:s.testMessages});runtime.pump();
           }
           if((field==='resetSession'||field==='clearData')&&active()){
             // Не допускаем завершения старой асинхронной записи после сброса: boot ждёт её.
             runtime.reset();
           }
-        } else if(active() && detail.listener==='message' && (!s.testMode || global.__CHAT_THANKS_PREVIEW__)){
+        } else if(active() && detail.listener==='message' && !s.testMode){
           engine.message(parseMessage(detail));runtime.pump();
         }
       },
       async reset(){
         if(runtime.resetting)return;runtime.resetting=true;
         // Остановить старую анимацию и дождаться единственной незавершённой записи.
-        stopped=true;clearInterval(interval);clearInterval(saveTimer);renderer.dispose();
+        stopped=true;clearInterval(interval);clearInterval(saveTimer);clearTimeout(testTimer);renderer.dispose();
         if(storage.inflight)await storage.inflight;
         if(app.runtime!==runtime)return;
         engine.reset();await storage.save(engine.snapshot());
@@ -539,7 +552,7 @@
     if(app.runtime)app.runtime.storage.observe(detail);
     if(app.runtime&&app.runtime.ready)app.runtime.event(detail);
     else {
-      if(detail.listener==='widget-button'&&detail.event&&['testAlert','testActivity'].includes(detail.event.field))
+      if(detail.listener==='widget-button'&&detail.event&&['testAlert','testActivity','testRank1','testRank2','testRank3'].includes(detail.event.field))
         diagnostic(lastStatus||'Виджет ещё запускается. Подождите несколько секунд. Если сообщение остаётся, проверьте вкладку HTML.');
       if(['message','widget-button'].includes(detail.listener)&&app.pending.length<5000)app.pending.push(detail);
     }

@@ -57,7 +57,7 @@
     if(!['message','widget-button'].includes(listener))return;
     if(switching||!lastApp){
       e.stopImmediatePropagation();
-      if(listener==='widget-button'&&['testAlert','testActivity'].includes(e.detail.event?.field))diagnostic();
+      if(listener==='widget-button'&&['testAlert','testActivity','testRank1','testRank2','testRank3'].includes(e.detail.event?.field))diagnostic();
       if(buffer.length<5000)buffer.push(e.detail);else warning('Буфер обновления заполнен; новые события не принимаются.');
     }
   }

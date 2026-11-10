@@ -1,0 +1,12 @@
+const {chromium}=require('playwright');const fs=require('fs');const assert=require('node:assert/strict');const path=require('path');const read=n=>fs.readFileSync(path.join(__dirname,'..','widget',n),'utf8');
+(async()=>{const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});try{const p=await b.newPage();await p.setContent('<style>'+read('CSS.css')+'</style>'+read('HTML.html'));await p.addScriptTag({content:read('JS.js')});
+const boot=async raw=>{await p.evaluate(raw=>dispatchEvent(new CustomEvent('onWidgetLoad',{detail:{fieldData:{persistence:false,avatarEnabled:false,enterSeconds:.1,displaySeconds:1,exitSeconds:.1,gapSeconds:0,...raw}}})),raw);await p.waitForFunction(()=>window.__chatThanks.runtime?.ready);};
+const click=field=>p.evaluate(field=>dispatchEvent(new CustomEvent('onEventReceived',{detail:{listener:'event:test',event:{listener:'widget-button',field}}})),field);
+await boot({ranksEnabled:false,instanceRole:'observer'});
+for(const n of [1,2,3]){await click('testRank'+n);await p.waitForFunction(n=>!document.querySelector('#thanks-card').hidden&&document.querySelector('#thanks-root').dataset.rank===String(n),n);assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.size),0);await p.waitForFunction(()=>document.querySelector('#thanks-card').hidden);}
+console.log('✓ Три отдельные кнопки работают без тестового режима, даже при отключённых рангах и роли наблюдателя');
+await boot({testMode:true,testRewardSeconds:1,minMessages:8,testMessages:1,testName:'xelennum'});
+await p.evaluate(()=>{window.__CHAT_THANKS_PREVIEW__={now:Date.now};dispatchEvent(new CustomEvent('onEventReceived',{detail:{listener:'message',event:{data:{nick:'real',userId:'real'}}}}));});assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.size),0);
+for(let i=0;i<2;i++){await click('testActivity');await p.waitForFunction(()=>!document.querySelector('#thanks-card').hidden);assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.get('id:synthetic-test-viewer').rewardedRank),1);await p.waitForFunction(()=>document.querySelector('#thanks-card').hidden);}
+assert.equal(await p.evaluate(()=>__chatThanks.runtime.engine.users.size),1);console.log('✓ Изолированный тест выдаёт плашку повторно, учитывает минимум сообщений, игнорирует реальные события');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -12,7 +12,8 @@
     "test:appearance": "node tests/appearance.cjs",
     "test:avatars": "node tests/avatars.cjs",
     "build:bundle": "node scripts/build-bundle.cjs",
-    "test:ranks": "node tests/ranks.cjs"
+    "test:ranks": "node tests/ranks.cjs",
+    "test:controls": "node tests/test-controls.cjs"
   },
   "engines": {
     "node": ">=18"
