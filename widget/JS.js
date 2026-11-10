@@ -386,7 +386,7 @@
       if(position){position.textContent=u.chatPosition?'№ '+u.chatPosition+' в чате':'';position.hidden=!s.showPosition||!u.chatPosition;}
       this.prepareAvatar(u);
       // Все имена и шаблоны выводятся textContent, никогда innerHTML.
-      d.getElementById('thanks-title').textContent=format(s.title,u,now);
+      d.getElementById('thanks-title').textContent=rank?s['rank'+rank+'Name']:format(s.title,u,now);
       d.getElementById('thanks-name').textContent=u.displayName;
       d.getElementById('thanks-text').textContent=format(rank?s['rank'+rank+'Text']:s.thankText,u,now);
       const mins=d.getElementById('thanks-minutes'), msgs=d.getElementById('thanks-messages');
